@@ -16,3 +16,4 @@ dependencies:
   - jupyter
   - pyyaml
   - scikit-learn
+  - bayesian-optimization

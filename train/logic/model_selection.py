@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import TimeSeriesSplit, train_test_split
 from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.optimizers import Adam
 
 from train.logic.model.LSTM_architecture import build_model
 from train.logic.data_preparation import to_supervised, parse_tf_input
@@ -11,7 +12,8 @@ from train.logic.data_preparation import to_supervised, parse_tf_input
 
 def model_training(date_feature: pd.DataFrame, test_size: int, input_range: int, prediction_time: int,
                    numerical_features, categorical_features, encoder_lstm_units: List[int],
-                   decoder_dense_units: List[int], category_input_dim: Dict, loss: str='mse',
+                   decoder_dense_units: List[int], category_input_dim: Dict, learning_rate: float,
+                   batch_size: int, loss: str='mse',
                    decoder_lstm_units: Optional[List]=None, lead_time: int=0):
 
     df_train, df_val = train_test_split(date_feature, test_size=test_size, shuffle=False)
@@ -35,7 +37,9 @@ def model_training(date_feature: pd.DataFrame, test_size: int, input_range: int,
 
     # we can have customized optimizer as well
 
-    model.compile(loss=loss, optimizer='adam')
+    optimizer = Adam(learning_rate=learning_rate)
+
+    model.compile(loss=loss, optimizer=optimizer)
 
     X_train, y_train = parse_tf_input(results_train)
     X_val, y_val = parse_tf_input(results_val)
@@ -44,7 +48,7 @@ def model_training(date_feature: pd.DataFrame, test_size: int, input_range: int,
 
     callbacks = [earlystopping]
 
-    model.fit(X_train, {'outputs': y_train['outputs']}, epochs=20, batch_size=4, verbose=0,
+    model.fit(X_train, {'outputs': y_train['outputs']}, epochs=20, batch_size=batch_size, verbose=0,
               validation_data=(X_val, {'outputs': y_val['outputs']}), shuffle=True, callbacks=callbacks)
 
     return model
@@ -52,7 +56,8 @@ def model_training(date_feature: pd.DataFrame, test_size: int, input_range: int,
 
 def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, input_range: int, prediction_time: int,
                      max_train_size: int, numerical_features: List, categorical_features: List,
-                     encoder_lstm_units: List[int], decoder_dense_units: List[int], loss: str='mse',
+                     encoder_lstm_units: List[int], decoder_dense_units: List[int], batch_size: int,
+                     learning_rate: float, loss: str='mse',
                      decoder_lstm_units: Optional[List]=None, lead_time: int=0):
 
     category_input_dim = {c: len(np.unique(date_feature[c].values)) for c in categorical_features}
@@ -84,7 +89,8 @@ def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, 
                                prediction_time=prediction_time, encoder_lstm_units=encoder_lstm_units,
                                decoder_dense_units=decoder_dense_units, decoder_lstm_units=decoder_lstm_units,
                                category_input_dim=category_input_dim, numerical_features=numerical_features,
-                               categorical_features=categorical_features, loss=loss)
+                               categorical_features=categorical_features, loss=loss, learning_rate=learning_rate,
+                               batch_size=batch_size)
 
         pred = model.predict(X_test)
 

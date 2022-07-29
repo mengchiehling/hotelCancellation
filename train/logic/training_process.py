@@ -12,6 +12,7 @@ from train.logic.model_selection import cross_validation
 def training_process(input_range: int, prediction_time: int, date_feature: pd.DataFrame,
                      numerical_features, categorical_features, n_splits: int,
                      max_train_size: int, encoder_lstm_units, decoder_dense_units, test_size,
+                     batch_size: int, learning_rate: float,
                      decoder_lstm_units: Optional[List]=None, loss: str='mse'):
 
     tf.random.set_seed(42)
@@ -33,6 +34,39 @@ def training_process(input_range: int, prediction_time: int, date_feature: pd.Da
                                       max_train_size=max_train_size, numerical_features=numerical_features,
                                       categorical_features=categorical_features, encoder_lstm_units=encoder_lstm_units,
                                       decoder_dense_units=decoder_dense_units, decoder_lstm_units=decoder_lstm_units,
-                                      loss=loss)
+                                      loss=loss, batch_size=batch_size, learning_rate=learning_rate)
 
     return y_true, y_pred
+
+def training_process_opt(input_range: int, prediction_time: int, date_feature: pd.DataFrame,
+                         numerical_features, categorical_features, n_splits: int,
+                         max_train_size: int, encoder_lstm_units, decoder_dense_units, test_size,
+                         batch_size, learning_rate, decoder_lstm_units: Optional[List]=None,
+                         loss: str='mse',
+                         ):
+
+    max_train_size = int(max_train_size)
+    batch_size = int(batch_size)
+
+    y_true, y_pred = training_process(input_range=input_range, prediction_time=prediction_time,
+                                      date_feature=date_feature, numerical_features=numerical_features,
+                                      categorical_features=categorical_features, n_splits=n_splits,
+                                      max_train_size=max_train_size, encoder_lstm_units=encoder_lstm_units,
+                                      decoder_dense_units=decoder_dense_units, test_size=test_size,
+                                      decoder_lstm_units=decoder_lstm_units, loss=loss,
+                                      batch_size=batch_size, learning_rate=learning_rate)
+
+    mape_list = []
+
+    for ix in range(n_splits):
+        y_pred = np.round(y_pred)
+        diff = abs((y_true[ix, :, :, 0] - y_pred[ix, :, :, 0]) / y_true[ix, :, :, 0])
+
+        for iy in range(test_size):
+            diff[iy][np.isinf(diff[iy])] = np.nan
+
+        mape_list.append(diff)
+
+    mape = np.nanmean(np.concatenate(mape_list))
+
+    return -mape

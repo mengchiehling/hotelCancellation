@@ -1,5 +1,6 @@
 import argparse
 import os
+from functools import partial
 
 import numpy as np
 import pandas as pd
@@ -7,7 +8,8 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import mean_squared_error
 
 from src.io.path_definition import get_file
-from train.logic.training_process import training_process
+from train.logic.training_process import training_process, training_process_opt
+from train.logic.optimization_process import optimization_process
 
 
 hotel_info = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_hotel_info.csv')))
@@ -72,23 +74,39 @@ if __name__ == "__main__":
 
     date_feature = date_feature.loc['2020/1/21': '2021/5/10']
 
-    y_true, y_pred = training_process(input_range=input_range, prediction_time=prediction_time,
-                                      date_feature=date_feature, numerical_features=numerical_features,
-                                      categorical_features=categorical_features, n_splits=n_splits,
-                                      max_train_size=max_train_size, encoder_lstm_units=[128, 512],
+    pbounds = {'batch_size': (4, 16),
+               'learning_rate': (0.0001, 0.003),
+               'max_train_size': (180, 360)}
+
+    training_process_opt_fn = partial(training_process_opt, prediction_time=prediction_time, date_feature=date_feature,
+                                      numerical_features=numerical_features, categorical_features=categorical_features,
+                                      n_splits=n_splits, encoder_lstm_units=[128, 512], input_range=input_range,
                                       decoder_dense_units=[10], test_size=test_size, loss='mse')
 
-    import numpy as np
+    model_name = "LSTM"
 
-    for ix in range(n_splits):
-        y_pred = np.round(y_pred)
-        diff = abs((y_true[ix, :, :, 0] - y_pred[ix, :, :, 0]) / y_true[ix, :, :, 0])
+    optimized_parameters = optimization_process(training_process_opt_fn, pbounds, model_name=model_name,
+                                                model_type=str(hotel_id))
 
-        for iy in range(test_size):
-            diff[iy][np.isinf(diff[iy])] = np.nan
+    print("")
 
-        mape = np.nanmean(diff, axis=0)
-        mape = np.round(mape * 100, 1)
-        mse = mean_squared_error(y_true[ix, :, :, 0], y_pred[ix, :, :, 0], multioutput='raw_values')
-        print(f"{ix}th fold: mape = {mape}")
-        print(f"{ix}th fold: rmse = {np.sqrt(mse)}")
+    # y_true, y_pred = training_process(input_range=input_range, prediction_time=prediction_time,
+    #                                   date_feature=date_feature, numerical_features=numerical_features,
+    #                                   categorical_features=categorical_features, n_splits=n_splits,
+    #                                   max_train_size=max_train_size, encoder_lstm_units=[128, 512],
+    #                                   decoder_dense_units=[10], test_size=test_size, loss='mse')
+    #
+    # import numpy as np
+    #
+    # for ix in range(n_splits):
+    #     y_pred = np.round(y_pred)
+    #     diff = abs((y_true[ix, :, :, 0] - y_pred[ix, :, :, 0]) / y_true[ix, :, :, 0])
+    #
+    #     for iy in range(test_size):
+    #         diff[iy][np.isinf(diff[iy])] = np.nan
+    #
+    #     mape = np.nanmean(diff, axis=0)
+    #     mape = np.round(mape * 100, 1)
+    #     mse = mean_squared_error(y_true[ix, :, :, 0], y_pred[ix, :, :, 0], multioutput='raw_values')
+    #     print(f"{ix}th fold: mape = {mape}")
+    #     print(f"{ix}th fold: rmse = {np.sqrt(mse)}")
