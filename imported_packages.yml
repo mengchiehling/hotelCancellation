@@ -1,0 +1,18 @@
+# conda create --name hotelCancellation python=3.7 -y
+# conda env update --name hotelCancellation --file=imported_packages.yml
+name: hotelCancellation
+channels:
+  - anaconda
+  - conda-forge
+dependencies:
+  - matplotlib
+  - pandas
+  - openpyxl
+  - pip
+  - tensorflow=2.6.0
+  - numpy
+  - statsmodels
+  - jupyterlab
+  - jupyter
+  - pyyaml
+  - scikit-learn
