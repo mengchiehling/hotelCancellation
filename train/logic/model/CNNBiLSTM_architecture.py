@@ -57,7 +57,7 @@ def build_decoder(state_h, state_c, decoder_dense_units, decoder_lstm_units: Lis
 
     lstm = LSTM(state_h.shape[1], activation='relu', return_sequences=True, dropout=0.1,
                 recurrent_dropout=0.1, name='decoder_LSTM_0')
-    y = Bidirectional(lstm, name=f'decoder_BiLSTM_0')(decoder_inputs)
+    y = Bidirectional(lstm, name=f'decoder_BiLSTM_0')(decoder_inputs)  # y = lstm(decoder_inputs)
 
     if decoder_lstm_units:
         for idx, lstm_units in enumerate(decoder_lstm_units):

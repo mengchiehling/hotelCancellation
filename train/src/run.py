@@ -18,8 +18,17 @@ cancel_target = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_target
 date_feature = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_date_feature.csv')), index_col=0)
 hotel_meta = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_hotel_info.csv')), index_col=0)
 
-le = LabelEncoder()
-date_feature['weekdate(星期，數值型)'] = le.fit_transform(date_feature['weekdate(星期，數值型)'])
+# le = LabelEncoder()
+# date_feature['weekdate(星期，數值型)'] = le.fit_transform(date_feature['weekdate(星期，數值型)'])
+
+
+def labelencoding(df, column: str):
+
+    le = LabelEncoder()
+    df[column] = le.fit_transform(df[column])
+
+    return df
+
 
 def data_preparation(hotel_id: int, date_feature: pd.DataFrame, cancel_target: pd.DataFrame, smooth:bool=False):
 
@@ -62,37 +71,42 @@ if __name__ == "__main__":
     parser.add_argument('--hotel_id', type=int, help='id of hotel, should exists in cancel_dataset_target.csv')
     parser.add_argument('--model_name', type=str, default='', help='model details')
     parser.add_argument('--model_type', type=str, help='model architecture')
-    parser.add_argument('--covid_status', type=int, help='')
+    # parser.add_argument('--covid_status', type=int, help='')
 
     args = parser.parse_args()
 
     input_range = args.input_range
     prediction_time = args.prediction_time
     hotel_id = args.hotel_id
-    covid_status = args.covid_status
+    # covid_status = args.covid_status
     model_name = args.model_name
     model_type = args.model_type
-
-    if covid_status == 1:
-        timestamps = (None, '2020/12/31')
-    if covid_status == 2:
-        timestamps = ('2021/1/1', None)
-
+    #
+    # if covid_status == 1:
+    #     timestamps = (None, '2020/12/31')
+    # if covid_status == 2:
+    #     timestamps = ('2021/1/1', None)
 
     n_splits = 7
     test_size = 28
 
+    for encoded_column in ['weekdate(星期，數值型)', ]:
+        date_feature = labelencoding(date_feature, encoded_column)
+
+    date_feature['警戒'] = 0
+    date_feature.loc[開始:結束, '警戒'] = 1
+
     # categorical_features = ['midd(大學期中考週)', 'sallery(發薪日區間，每月5-10號)', 'is_rest_day(是否為假日)',
     #                         'vecation(是否為國定連假)', 's_vecation(暑假)', 'w_vecation(寒假)', 'weekdate(星期，數值型)']
 
-    categorical_features = ['vecation(是否為國定連假)', 'weekdate(星期，數值型)']
+    categorical_features = ['vecation(是否為國定連假)', 'weekdate(星期，數值型)']  # encoded_columns + nonencoded_columns
 
-    numerical_features, date_feature = data_preparation(hotel_id, date_feature, cancel_target, smooth=True)
+    numerical_features, date_feature = data_preparation(hotel_id, date_feature, cancel_target, smooth=False)
 
-    if not timestamps[0]:
-        date_feature = date_feature.loc[: timestamps[1]]
-    if not timestamps[1]:
-        date_feature = date_feature.loc[timestamps[0]:]
+    # if not timestamps[0]:
+    #     date_feature = date_feature.loc[: timestamps[1]]
+    # if not timestamps[1]:
+    #     date_feature = date_feature.loc[timestamps[0]:]
 
     pbounds = {'batch_size': (4, 16),
                'learning_rate': (0.0001, 0.01)}
