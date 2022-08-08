@@ -66,8 +66,8 @@ def to_supervised(df: pd.DataFrame, input_range: int, prediction_time: int, nume
                'decoder_X_cat': decoder_X_cat}
 
     if not prediction:
-        results['y'] = y
-        results['y_label'] = y_label
+        results['y'] = y  # 原始值
+        results['y_label'] = y_label #
 
     return results
 
