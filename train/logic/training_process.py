@@ -11,52 +11,56 @@ from train.logic.model_selection import cross_validation
 
 def training_process(input_range: int, prediction_time: int, date_feature: pd.DataFrame,
                      numerical_features, categorical_features, n_splits: int,
-                     max_train_size: int, encoder_lstm_units, decoder_dense_units, test_size,
-                     batch_size: int, learning_rate: float, model_type: str, model_name: str,
-                     decoder_lstm_units: Optional[List]=None, loss: str='mse'):
+                     max_train_size: int, test_size, batch_size: int, learning_rate: float,
+                     model_type: str, encoder_lstm_units_0: int, loss: str='mse', dropout: float=0,
+                     recurrent_dropout: float=0, **kwargs):
 
     tf.random.set_seed(42)
     os.environ['PYTHONHASHSEED']='42'
     random.seed(42)
     np.random.seed(42)
 
-    encoder_lstm_units = [int(lstm_units) for lstm_units in encoder_lstm_units]
-
-    if decoder_lstm_units:
-        decoder_lstm_units = [int(lstm_units) for lstm_units in decoder_lstm_units]
-
-    decoder_dense_units = [int(units) for units in decoder_dense_units]
-
     date_feature_copy = date_feature.copy()
 
     y_true, y_pred = cross_validation(date_feature=date_feature_copy, input_range=input_range,
                                       prediction_time=prediction_time, n_splits=n_splits, test_size=test_size,
                                       max_train_size=max_train_size, numerical_features=numerical_features,
-                                      categorical_features=categorical_features, encoder_lstm_units=encoder_lstm_units,
-                                      decoder_dense_units=decoder_dense_units, decoder_lstm_units=decoder_lstm_units,
+                                      categorical_features=categorical_features,
+                                      encoder_lstm_units_0=encoder_lstm_units_0,
                                       loss=loss, batch_size=batch_size, learning_rate=learning_rate,
-                                      model_type=model_type, model_name=model_name)
+                                      model_type=model_type, dropout=dropout,
+                                      recurrent_dropout=recurrent_dropout, **kwargs)
 
     return y_true, y_pred
 
 def training_process_opt(input_range: int, prediction_time: int, date_feature: pd.DataFrame,
-                         numerical_features, categorical_features, n_splits: int,
-                         max_train_size: int, encoder_lstm_units, decoder_dense_units, test_size,
-                         batch_size, learning_rate, model_type: str, model_name: str,
-                         decoder_lstm_units: Optional[List]=None, loss: str='mse'):
+                         numerical_features, categorical_features, n_splits: int, encoder_lstm_units_0,
+                         max_train_size: int, test_size, batch_size, learning_rate, model_type: str,
+                         loss: str='mse', encoder_lstm_units_1=None, decoder_lstm_units_1=None,
+                         decoder_dense_units=None, recurrent_dropout=0.0, dropout=0.0):
 
     # For hyperparameter optimization
 
     max_train_size = int(max_train_size)
     batch_size = int(batch_size)
+    encoder_lstm_units_0 = int(encoder_lstm_units_0)
+    if encoder_lstm_units_1:
+        encoder_lstm_units_1=int(encoder_lstm_units_1)
+    if decoder_lstm_units_1:
+        decoder_lstm_units_1=int(decoder_lstm_units_1)
+    if decoder_dense_units:
+        decoder_dense_units=int(decoder_dense_units)
 
     y_true, y_pred = training_process(input_range=input_range, prediction_time=prediction_time,
                                       date_feature=date_feature, numerical_features=numerical_features,
                                       categorical_features=categorical_features, n_splits=n_splits,
-                                      max_train_size=max_train_size, encoder_lstm_units=encoder_lstm_units,
-                                      decoder_dense_units=decoder_dense_units, test_size=test_size,
-                                      decoder_lstm_units=decoder_lstm_units, loss=loss, batch_size=batch_size,
-                                      learning_rate=learning_rate, model_name=model_name, model_type=model_type)
+                                      max_train_size=max_train_size,  test_size=test_size, loss=loss,
+                                      batch_size=batch_size, learning_rate=learning_rate, model_type=model_type,
+                                      dropout=dropout, recurrent_dropout=recurrent_dropout,
+                                      encoder_lstm_units_0=encoder_lstm_units_0,
+                                      encoder_lstm_units_1=encoder_lstm_units_1,
+                                      decoder_lstm_units_1=decoder_lstm_units_1,
+                                      decoder_dense_units=decoder_dense_units)
 
     mape_list = []
 
