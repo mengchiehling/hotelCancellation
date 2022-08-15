@@ -54,7 +54,7 @@ def model_training(date_feature: pd.DataFrame, test_size: int, input_range: int,
 
     callbacks = [earlystopping]
 
-    model.fit(X_train, {'outputs': y_train['outputs']}, epochs=20, batch_size=batch_size, verbose=1,
+    model.fit(X_train, {'outputs': y_train['outputs']}, epochs=20, batch_size=batch_size, verbose=0,
               validation_data=(X_val, {'outputs': y_val['outputs']}), shuffle=True, callbacks=callbacks)
 
     return model
@@ -88,7 +88,7 @@ def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, 
         time_begin = df_train.index[0]
         time_end = df_train.index[-1]
 
-        print(f"fold {n_fold}: {time_begin} - {time_end}")
+        print(f"fold {n_fold}: training: {time_begin} - {time_end}, testing: {test_index[0]} - {test_index[-1]}")
 
         df_test = date_feature.iloc[test_index]
         df_test.loc[:, columns] = scaler.transform(df_test)
