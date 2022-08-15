@@ -88,10 +88,10 @@ def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, 
         time_begin = df_train.index[0]
         time_end = df_train.index[-1]
 
-        print(f"fold {n_fold}: training: {time_begin} - {time_end}, testing: {test_index[0]} - {test_index[-1]}")
-
         df_test = date_feature.iloc[test_index]
         df_test.loc[:, columns] = scaler.transform(df_test)
+
+        print(f"fold {n_fold}: training: {time_begin} - {time_end}, testing: {df_test.index[0]} - {df_test.index[-1]}")
 
         results_test = to_supervised(df_test, input_range=input_range, prediction_time=prediction_time,
                                      numerical_features=numerical_features, categorical_features=categorical_features)
