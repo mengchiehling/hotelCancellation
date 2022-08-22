@@ -34,18 +34,24 @@ def training_process(input_range: int, prediction_time: int, date_feature: pd.Da
     return y_true, y_pred
 
 def training_process_opt(input_range: int, prediction_time: int, date_feature: pd.DataFrame,
-                         numerical_features, categorical_features, n_splits: int, encoder_lstm_units_0,
+                         numerical_features, categorical_features, n_splits: int,
                          max_train_size: int, test_size, batch_size, learning_rate, model_type: str,
-                         loss: str='mse', encoder_lstm_units_1=None, decoder_lstm_units_1=None,
+                         loss: str='mse', encoder_filters_0=None, encoder_lstm_units_0=None,
+                         encoder_lstm_units_1=None, decoder_lstm_units_0=None, decoder_lstm_units_1=None,
                          decoder_dense_units=None, recurrent_dropout=0.0, dropout=0.0):
 
     # For hyperparameter optimization
 
     max_train_size = int(max_train_size)
     batch_size = int(batch_size)
-    encoder_lstm_units_0 = int(encoder_lstm_units_0)
+    if encoder_lstm_units_0:
+        encoder_lstm_units_0 = int(encoder_lstm_units_0)
     if encoder_lstm_units_1:
         encoder_lstm_units_1=int(encoder_lstm_units_1)
+    if encoder_filters_0:
+        encoder_filters_0 = int(encoder_filters_0)
+    if decoder_lstm_units_0:
+        decoder_lstm_units_0=int(decoder_lstm_units_0)
     if decoder_lstm_units_1:
         decoder_lstm_units_1=int(decoder_lstm_units_1)
     if decoder_dense_units:
@@ -59,8 +65,10 @@ def training_process_opt(input_range: int, prediction_time: int, date_feature: p
                                       dropout=dropout, recurrent_dropout=recurrent_dropout,
                                       encoder_lstm_units_0=encoder_lstm_units_0,
                                       encoder_lstm_units_1=encoder_lstm_units_1,
+                                      encoder_filters_0=encoder_filters_0,
+                                      decoder_lstm_units_0=decoder_lstm_units_0,
                                       decoder_lstm_units_1=decoder_lstm_units_1,
-                                      decoder_dense_units=decoder_dense_units)
+                                      decoder_dense_units=decoder_dense_units,)
 
     mape_list = []
 

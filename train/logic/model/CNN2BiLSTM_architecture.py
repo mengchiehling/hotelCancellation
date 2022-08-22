@@ -20,7 +20,7 @@ CNN2BiLSTM parameters:
 from typing import Optional, Dict
 
 from tensorflow.keras.layers import Input, LSTM, Concatenate, TimeDistributed, GlobalAveragePooling1D, Embedding, \
-    Dense, RepeatVector, Bidirectional, Conv1D, MaxPooling1D, Flatten, Dropout
+    Dense, RepeatVector, Bidirectional, Conv1D, MaxPooling1D, Flatten, Dropout, ReLU
 from tensorflow.keras.models import Model
 
 from src.logic.common.functions import parenthesis_striped
@@ -39,17 +39,20 @@ def build_encoder(n_inputs, n_features, filters_0: int, filters_1: Optional[int]
     x = Concatenate(axis=2)(categorical_inputs + [encoder_numerical_inputs])
 
     idx = 0
-    x = Conv1D(filters=filters_0, kernel_size=3, dropout=dropout, name=f'encoder_CNN_{idx}')(x)
+    x = Conv1D(filters=filters_0, kernel_size=3, name=f'encoder_CNN_{idx}')(x)
+    x = Dropout(rate=dropout)(x)
     if filters_1:
         idx += 1
         filters_1 = int(filters_1)
-        x = Conv1D(filters=filters_1, kernel_size=3, dropout=dropout, name=f'encoder_CNN_{idx}')(x)
+        x = Conv1D(filters=filters_1, kernel_size=3, name=f'encoder_CNN_{idx}')(x)
+        x = Dropout(rate=dropout)(x)
     if filters_2:
         idx += 1
         filters_2 = int(filters_2)
-        x = Conv1D(filters=filters_2, kernel_size=3, dropout=dropout, name=f'encoder_CNN_{idx}')(x)
+        x = Conv1D(filters=filters_2, kernel_size=3, name=f'encoder_CNN_{idx}')(x)
+        x = Dropout(rate=dropout)(x)
 
-    x = MaxPooling1D(size=2)(x)
+    x = MaxPooling1D(pool_size=2)(x)
     embedding = Flatten()(x)
 
     return inputs_layers, embedding
@@ -82,18 +85,21 @@ def build_decoder(embedding, decoder_cat_dict, lstm_units_0: int, lstm_units_1: 
     decoder_inputs = Concatenate(axis=2)(categorical_inputs)
 
     idx = 0
-    lstm_0 = LSTM(lstm_units_0, activation='relu', return_sequences=True, dropout=dropout,
+    lstm_0 = LSTM(lstm_units_0, activation='linear', return_sequences=True, dropout=dropout,
                   recurrent_dropout=recurrent_dropout, name=f'decoder_LSTM_{idx}')
     y = Bidirectional(lstm_0, name=f'decoder_BiLSTM_{idx}')(decoder_inputs)
+    y = ReLU()(y)
 
     if lstm_units_1:
         idx += 1
-        lstm_1 = LSTM(lstm_units_1, activation='relu', return_sequences=True, dropout=dropout,
+        lstm_1 = LSTM(lstm_units_1, activation='linear', return_sequences=True, dropout=dropout,
                   recurrent_dropout=recurrent_dropout, name=f'decoder_LSTM_{idx}')
-        y = Bidirectional(lstm_1, dropout=dropout, name=f'decoder_BiLSTM_{idx}')(decoder_inputs)
+        y = Bidirectional(lstm_1, name=f'decoder_BiLSTM_{idx}')(decoder_inputs)
+        y = ReLU()(y)
 
     if dense_units:
-        y = TimeDistributed(Dense(dense_units, dropout=dropout, activation='relu'))(y)
+        y = TimeDistributed(Dense(dense_units, activation='relu'))(y)
+        y = Dropout(rate=dropout)(y)
         if dropout > 0:
             y = TimeDistributed(Dropout(dropout))(y)
 

@@ -32,7 +32,7 @@ def model_training(date_feature: pd.DataFrame, test_size: int, input_range: int,
 
     _, n_inputs, n_features = results_train['encoder_X_num'].shape
 
-    assert model_type in ['LSTM2LSTM']
+    assert model_type in ['LSTM2LSTM', 'CNN2LSTM', 'CNN2BiLSTM', 'LSTM2LSTMLuongAttention']
     # model architecture according to model_name
 
     m = importlib.import_module(f"train.logic.model.{model_type}_architecture")
@@ -77,7 +77,8 @@ def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, 
         test_index = np.arange(test_index[0] - input_range - lead_time - prediction_time, test_index[-1] + 1)
 
         scaler = MinMaxScaler()  # default to 0 - 1
-        columns = date_feature.columns
+        columns= date_feature.columns
+        columns = columns[~columns.isin([categorical_features])]
 
         df_train = date_feature.iloc[train_index]
         df_train.loc[:, columns] = scaler.fit_transform(df_train)

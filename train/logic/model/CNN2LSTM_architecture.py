@@ -40,19 +40,21 @@ def build_encoder(n_inputs, n_features, filters_0: int, filters_1: Optional[int]
     x = Concatenate(axis=2)(categorical_inputs + [encoder_numerical_inputs])
 
     idx = 0
-    x = Conv1D(filters=filters_0, kernel_size=3, dropout=dropout, name=f'encoder_CNN_{idx}')(x)
+    x = Conv1D(filters=filters_0, kernel_size=3, name=f'encoder_CNN_{idx}')(x)
+    x = Dropout(rate=dropout)(x)
     if filters_1:
         idx += 1
         filters_1 = int(filters_1)
-        x = Conv1D(filters=filters_1, kernel_size=3, dropout=dropout, name=f'encoder_CNN_{idx}')(x)
+        x = Conv1D(filters=filters_1, kernel_size=3, name=f'encoder_CNN_{idx}')(x)
+        x = Dropout(rate=dropout)(x)
     if filters_2:
         idx += 1
         filters_2 = int(filters_2)
-        x = Conv1D(filters=filters_2, kernel_size=3, dropout=dropout, name=f'encoder_CNN_{idx}')(x)
+        x = Conv1D(filters=filters_2, kernel_size=3, name=f'encoder_CNN_{idx}')(x)
+        x = Dropout(rate=dropout)(x)
 
-    x = MaxPooling1D(size=2)(x)
+    x = MaxPooling1D(pool_size=2)(x)
     embedding = Flatten()(x)
-
     return inputs_layers, embedding
 
 
@@ -96,7 +98,7 @@ def build_decoder(embedding, decoder_cat_dict, lstm_units_0: int, lstm_units_1: 
 
     if dense_units:
         dense_units = int(dense_units)
-        y = TimeDistributed(Dense(units=dense_units, activation='relu', dropout=dropout, name='decoder_dense_layer'))(y)
+        y = TimeDistributed(Dense(units=dense_units, activation='relu', name='decoder_dense_layer'))(y)
         if dropout > 0:
             y = TimeDistributed(Dropout(dropout))(y)
 

@@ -71,7 +71,6 @@ if __name__ == "__main__":
     parser.add_argument('--input_range', type=int, help='length of input time series')
     parser.add_argument('--prediction_time', type=int, help='length of output time series')
     parser.add_argument('--hotel_id', type=int, help='id of hotel, should exists in cancel_dataset_target.csv')
-    parser.add_argument('--model_type', type=str, help='model details')
     parser.add_argument('--diff', type=int,  nargs='+', help='差分', default=[])
     parser.add_argument('--smooth', action='store_true')
 
@@ -80,11 +79,11 @@ if __name__ == "__main__":
     input_range = args.input_range
     prediction_time = args.prediction_time
     hotel_id = args.hotel_id
-    model_type = args.model_type
+    model_type = 'LSTM2LSTM'
     diff = args.diff
     smooth=args.smooth
 
-    n_splits = 11
+    n_splits = 15
     test_size = 28
 
     for encoded_column in ['weekdate(星期，數值型)', 'vecation(是否為國定連假)']:
@@ -111,7 +110,7 @@ if __name__ == "__main__":
                                       numerical_features=numerical_features, categorical_features=categorical_features,
                                       n_splits=n_splits, input_range=input_range,
                                       test_size=test_size, loss='mse', model_type=model_type,
-                                      max_train_size=180)
+                                      max_train_size=365)
 
     optimized_parameters = optimization_process(training_process_opt_fn, pbounds, model_type=model_type)
 
