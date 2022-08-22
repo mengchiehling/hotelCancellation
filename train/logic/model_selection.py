@@ -78,9 +78,12 @@ def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, 
 
         scaler = MinMaxScaler()  # default to 0 - 1
         columns = date_feature.columns
+        columns = columns[~columns.isin(categorical_features)]
 
         df_train = date_feature.iloc[train_index]
-        df_train.loc[:, columns] = scaler.fit_transform(df_train)
+        #df_train.loc[:, columns] = scaler.fit_transform(df_train)
+        df_train.loc[:, columns] = scaler.fit_transform(df_train[columns])
+
         # Apply rescaling:
         # https://stackoverflow.com/questions/43467597/should-i-normalize-my-features-before-throwing-them-into-rnn
         # It might help improve the performance of the model
