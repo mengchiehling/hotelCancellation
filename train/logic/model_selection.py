@@ -77,11 +77,14 @@ def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, 
         test_index = np.arange(test_index[0] - input_range - lead_time - prediction_time, test_index[-1] + 1)
 
         scaler = MinMaxScaler()  # default to 0 - 1
-        columns= date_feature.columns
-        columns = columns[~columns.isin([categorical_features])]
+
+        columns = date_feature.columns
+        columns = columns[~columns.isin(categorical_features)]
 
         df_train = date_feature.iloc[train_index]
-        df_train.loc[:, columns] = scaler.fit_transform(df_train)
+        #df_train.loc[:, columns] = scaler.fit_transform(df_train)
+        df_train.loc[:, columns] = scaler.fit_transform(df_train[columns])
+
         # Apply rescaling:
         # https://stackoverflow.com/questions/43467597/should-i-normalize-my-features-before-throwing-them-into-rnn
         # It might help improve the performance of the model
@@ -90,7 +93,7 @@ def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, 
         time_end = df_train.index[-1]
 
         df_test = date_feature.iloc[test_index]
-        df_test.loc[:, columns] = scaler.transform(df_test)
+        df_test.loc[:, columns] = scaler.transform(df_test[columns])
 
         print(f"fold {n_fold}: training: {time_begin} - {time_end}, testing: {df_test.index[0]} - {df_test.index[-1]}")
 
