@@ -87,6 +87,7 @@ if __name__ == "__main__":
     test_size = 28
 
     categorical_features = ['vecation', 'weekdate']  # encoded_columns + nonencoded_columns
+
     for encoded_column in categorical_features:
         date_feature = labelencoding(date_feature, encoded_column)
 

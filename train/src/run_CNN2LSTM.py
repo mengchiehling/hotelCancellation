@@ -87,13 +87,10 @@ if __name__ == "__main__":
     n_splits = 15
     test_size = 28
 
-    for encoded_column in ['weekdate(星期，數值型)', 'vecation(是否為國定連假)']:
+    categorical_features = ['vecation', 'weekdate']
+
+    for encoded_column in categorical_features:
         date_feature = labelencoding(date_feature, encoded_column)
-
-    # categorical_features = ['midd(大學期中考週)', 'sallery(發薪日區間，每月5-10號)', 'is_rest_day(是否為假日)',
-    #                         'vecation(是否為國定連假)', 's_vecation(暑假)', 'w_vecation(寒假)', 'weekdate(星期，數值型)']
-
-    categorical_features = ['vecation(是否為國定連假)', 'weekdate(星期，數值型)']  # encoded_columns + nonencoded_columns
 
     numerical_features, date_feature = data_preparation(hotel_id, date_feature, cancel_target,
                                                         smooth=smooth, diff=diff)
