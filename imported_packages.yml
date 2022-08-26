@@ -1,10 +1,10 @@
-# conda create --name hotelCancellation python=3.7 -y
-# conda env update --name hotelCancellation --file=imported_packages.yml
+# conda env create -f imported_packages.yml --force --name hotelCancellation
 name: hotelCancellation
 channels:
   - anaconda
   - conda-forge
 dependencies:
+  - python=3.7
   - matplotlib
   - pandas
   - openpyxl
@@ -17,3 +17,4 @@ dependencies:
   - pyyaml
   - scikit-learn
   - bayesian-optimization
+  - prophet

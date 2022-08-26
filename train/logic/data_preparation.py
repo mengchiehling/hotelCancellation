@@ -1,8 +1,11 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from tensorflow.keras.layers import Input, Embedding, TimeDistributed, GlobalAveragePooling1D, RepeatVector
+
+from src.logic.common.functions import parenthesis_striped
 
 
 def to_supervised(df: pd.DataFrame, input_range: int, prediction_time: int, numerical_features: List,
@@ -10,7 +13,7 @@ def to_supervised(df: pd.DataFrame, input_range: int, prediction_time: int, nume
 
     day_increment = 1
 
-    date_feature_numerical = df[numerical_features]
+    date_feature_numerical = df[numerical_features].drop(labels=['canceled_label'], axis=1)
     date_feature_categorical = df[categorical_features]
 
     encoder_X_num = list()
@@ -88,3 +91,27 @@ def parse_tf_input(results: Dict, prediction: bool = False):
         y = {'outputs': tf.convert_to_tensor(results['y_label'], dtype=tf.float32),
              'true': results['y']}
         return X, y
+
+
+def generate_categorical_embeddings(x, decoder_cat_dict: Optional[Dict]=None):
+
+    inputs_layers = []
+    categorical_inputs = []
+
+    if decoder_cat_dict:
+        for key, item in decoder_cat_dict.items():
+            q = item['value']
+            _, shape_1, shape_2 = q.shape
+
+            cat_input = Input(shape=(shape_1, shape_2), name=f"{key}_decoder")
+
+            inputs_layers.append(cat_input)
+
+            input_dim = item['input_dim']
+            y_embedding = Embedding(input_dim, 1)(cat_input)
+            y_embedding = TimeDistributed(GlobalAveragePooling1D(), name=f"{parenthesis_striped(key)}_decoder_embed")(
+                y_embedding)
+
+            categorical_inputs.append(y_embedding)
+
+    return inputs_layers, categorical_inputs
