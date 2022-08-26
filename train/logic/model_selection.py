@@ -13,9 +13,9 @@ from train.logic.data_preparation import to_supervised, parse_tf_input
 
 
 def model_training(date_feature: pd.DataFrame, test_size: int, input_range: int, prediction_time: int,
-                   numerical_features, categorical_features, encoder_lstm_units_0: int,
-                   category_input_dim: Dict, learning_rate: float, batch_size: int, model_type: str,
-                   loss: str='mse', lead_time: int=0, dropout: float=0, recurrent_dropout: float=0, **kwargs):
+                   numerical_features, categorical_features, category_input_dim: Dict, learning_rate: float,
+                   batch_size: int, model_type: str, loss: str='mse', lead_time: int=0, dropout: float=0,
+                   recurrent_dropout: float=0, **kwargs):
 
     df_train, df_val = train_test_split(date_feature, test_size=test_size, shuffle=False)
 
@@ -32,14 +32,13 @@ def model_training(date_feature: pd.DataFrame, test_size: int, input_range: int,
 
     _, n_inputs, n_features = results_train['encoder_X_num'].shape
 
-    assert model_type in ['LSTM2LSTM', 'CNN2LSTM', 'CNN2BiLSTM', 'LSTM2LSTMLuongAttention']
+    assert model_type in ['LSTM2LSTM', 'CNN2LSTM']
     # model architecture according to model_name
 
     m = importlib.import_module(f"train.logic.model.{model_type}_architecture")
 
     model = m.build_model(n_inputs=n_inputs, n_features=n_features, decoder_cat_dict=results_train['decoder_X_cat'],
-                          encoder_lstm_units_0=encoder_lstm_units_0, dropout=dropout,
-                          recurrent_dropout=recurrent_dropout, **kwargs)
+                          dropout=dropout, recurrent_dropout=recurrent_dropout, **kwargs)
 
     # we can have customized optimizer as well
 
@@ -62,7 +61,7 @@ def model_training(date_feature: pd.DataFrame, test_size: int, input_range: int,
 
 def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, input_range: int,
                      prediction_time: int, max_train_size: int, numerical_features: List,
-                     categorical_features: List, encoder_lstm_units_0: int, batch_size: int, learning_rate: float,
+                     categorical_features: List, batch_size: int, learning_rate: float,
                      model_type: str, loss: str='mse', lead_time: int=0, dropout: float=0, recurrent_dropout: float=0,
                      **kwargs):
 
@@ -104,10 +103,10 @@ def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, 
         y_true.append(y_test['true'])
 
         model = model_training(date_feature=df_train, test_size=test_size, input_range=input_range,
-                               prediction_time=prediction_time, encoder_lstm_units_0=encoder_lstm_units_0,
-                               category_input_dim=category_input_dim, numerical_features=numerical_features,
-                               categorical_features=categorical_features, loss=loss, learning_rate=learning_rate,
-                               batch_size=batch_size, model_type=model_type, dropout=dropout,
+                               prediction_time=prediction_time, category_input_dim=category_input_dim,
+                               numerical_features=numerical_features, categorical_features=categorical_features,
+                               loss=loss, learning_rate=learning_rate, batch_size=batch_size,
+                               model_type=model_type, dropout=dropout,
                                recurrent_dropout=recurrent_dropout, **kwargs)
 
         pred = model.predict(X_test)

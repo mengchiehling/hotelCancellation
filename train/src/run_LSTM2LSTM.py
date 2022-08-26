@@ -55,7 +55,7 @@ def data_preparation(hotel_id: int, date_feature: pd.DataFrame, cancel_target: p
         date_feature['MACD'] = date_feature[f'canceled_3_roll'] - date_feature[f'canceled_14_roll']
         num_feature_columns.append('MACD')
 
-    if len(diff) > 0:
+    if diff is not None:
         for time_diff in diff:
             c = f'diff_{time_diff}'
             date_feature[c] = (date_feature['canceled'] - date_feature['canceled'].shift(time_diff)).fillna(0)
@@ -103,7 +103,8 @@ if __name__ == "__main__":
 
     pbounds = {'batch_size': (4, 16),
                'learning_rate': (0.0001, 0.01),
-               'encoder_lstm_units_0': (32, 512),
+               'encoder_lstm_units': (32, 512),
+               'decoder_lstm_units': (32, 512),
                'dropout': (0.1, 0.4),
                'recurrent_dropout': (0.1, 0.4),
                'decoder_dense_units': (8, 32)}
