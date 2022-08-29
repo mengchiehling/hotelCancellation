@@ -1,25 +1,18 @@
 '''
-CNN2BiLSTM parameters:
+BiLSTM2LSTM parameters:
 
 1. encoder:
-
-    Must: encoder_filters_0
-    Optional:
-        encoder_lstm_units_1
+    Must: encoder_lstm_units
 
 2. decoder:
-
-    Must: decoder_lstm_units_1
-
+    Must: decoder_lstm_units
     Optional:
         decoder_dense_units
 '''
 
-from typing import Dict
-
 from tensorflow.keras.models import Model
 
-from train.logic_fb.model.encoder import LSTM_encoder
+from train.logic_fb.model.encoder import BiLSTM_encoder
 from train.logic_fb.model.decoder import LSTM_decoder
 
 
@@ -30,9 +23,9 @@ def build_model(n_inputs, n_features, n_outputs: int,
     decoder_lstm_units = kwargs.get('decoder_lstm_units')
     decoder_dense_units = kwargs.get('decoder_dense_units')
 
-    encoder_inputs_layers, _, state_h, state_c = LSTM_encoder(n_inputs, n_features, lstm_units=encoder_lstm_units,
-                                                              recurrent_dropout=recurrent_dropout,
-                                                              dropout=dropout)
+    encoder_inputs_layers, _, state_h, state_c = BiLSTM_encoder(n_inputs, n_features, lstm_units=encoder_lstm_units,
+                                                                recurrent_dropout=recurrent_dropout,
+                                                                dropout=dropout)
 
     outputs = LSTM_decoder(state_h, dense_units=decoder_dense_units,
                            lstm_units=decoder_lstm_units, n_outputs=n_outputs,
