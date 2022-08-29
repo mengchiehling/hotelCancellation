@@ -64,7 +64,7 @@ def data_preparation(date_feature: pd.DataFrame, label_column: str):
 
     num_feature_columns = [label_column]
 
-    for time_diff in [7, 14, 21, 28]:  # has to be replaced
+    for time_diff in [1]:  # has to be replaced
         c = f'diff_{time_diff}'
         date_feature[c] = (date_feature[label_column] - date_feature[label_column].shift(time_diff)).fillna(0)
         num_feature_columns.append(c)

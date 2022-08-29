@@ -52,8 +52,8 @@ def data_preparation(hotel_id: int, date_feature: pd.DataFrame, cancel_target: p
             roll = hotel_cancel.rolling(window=window, min_periods=1)
             date_feature[c] = roll.mean()
             num_feature_columns.extend([c])
-        date_feature['MACD'] = date_feature[f'canceled_3_roll'] - date_feature[f'canceled_14_roll']
-        num_feature_columns.append('MACD')
+        # date_feature['MACD'] = date_feature[f'canceled_3_roll'] - date_feature[f'canceled_14_roll']
+        # num_feature_columns.append('MACD')
 
     if len(diff) > 0:
         for time_diff in diff:
@@ -99,7 +99,6 @@ if __name__ == "__main__":
     pbounds = {'batch_size': (4, 16),
                'learning_rate': (0.0001, 0.01),
                'encoder_filters': (32, 512),
-               'decoder_lstm_units': (32, 512),
                'dropout': (0.1, 0.4),
                'recurrent_dropout': (0.1, 0.4),
                'decoder_dense_units': (8, 32)}

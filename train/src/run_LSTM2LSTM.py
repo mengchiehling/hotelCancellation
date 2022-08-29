@@ -104,7 +104,6 @@ if __name__ == "__main__":
     pbounds = {'batch_size': (4, 16),
                'learning_rate': (0.0001, 0.01),
                'encoder_lstm_units': (32, 512),
-               'decoder_lstm_units': (32, 512),
                'dropout': (0.1, 0.4),
                'recurrent_dropout': (0.1, 0.4),
                'decoder_dense_units': (8, 32)}
