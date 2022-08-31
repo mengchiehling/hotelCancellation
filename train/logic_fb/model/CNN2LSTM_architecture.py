@@ -2,18 +2,10 @@
 CNN2LSTM parameters:
 
 1. encoder:
-
-    Must: encoder_filters_0
-    Optional:
-        encoder_filters_1
-        encoder_filters_2
+    Must: encoder_filters
 
 2. decoder:
-
-    Must: decoder_lstm_units_0
-    Optional:
-        decoder_lstm_units_1
-        decoder_dense_units
+    Must: decoder_lstm_units
 '''
 from typing import Dict
 

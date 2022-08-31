@@ -1,21 +1,14 @@
 '''
-CNN2BiLSTM parameters:
+LSTM2LSTM parameters:
 
 1. encoder:
-
-    Must: encoder_filters_0
-    Optional:
-        encoder_lstm_units_1
+    Must: encoder_lstm_units
 
 2. decoder:
-
-    Must: decoder_lstm_units_1
-
+    Must: decoder_lstm_units
     Optional:
         decoder_dense_units
 '''
-
-from typing import Dict
 
 from tensorflow.keras.models import Model
 

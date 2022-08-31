@@ -31,14 +31,15 @@ def model_training(date_feature: pd.DataFrame, test_size: int, input_range: int,
                                 numerical_features=numerical_features, categorical_features=categorical_features)
 
     _, n_inputs, n_features = results_train['encoder_X_num'].shape
+    _, n_outputs, _ = results_train['y_label'].shape
 
-    assert model_type in ['LSTM2LSTM', 'CNN2LSTM']
+    assert model_type in ['LSTM2LSTM', 'CNN2LSTM', 'BiLSTM2LSTM']
     # model architecture according to model_name
 
     m = importlib.import_module(f"train.logic.model.{model_type}_architecture")
 
     model = m.build_model(n_inputs=n_inputs, n_features=n_features, decoder_cat_dict=results_train['decoder_X_cat'],
-                          dropout=dropout, recurrent_dropout=recurrent_dropout, **kwargs)
+                          dropout=dropout, recurrent_dropout=recurrent_dropout, n_outputs=n_outputs, **kwargs)
 
     # we can have customized optimizer as well
 
