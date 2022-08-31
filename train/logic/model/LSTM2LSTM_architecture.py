@@ -27,7 +27,7 @@ def build_model(n_inputs, n_features, decoder_cat_dict: Dict,
                 dropout: float=0, recurrent_dropout: float=0, **kwargs):
 
     encoder_lstm_units = kwargs.get('encoder_lstm_units')
-    decoder_lstm_units = kwargs.get('decoder_lstm_units')
+
     decoder_dense_units = kwargs.get('decoder_dense_units')
 
     encoder_inputs_layers, _, state_h, state_c = LSTM_encoder(n_inputs, n_features, lstm_units=encoder_lstm_units,
@@ -35,7 +35,7 @@ def build_model(n_inputs, n_features, decoder_cat_dict: Dict,
                                                               dropout=dropout)
 
     decoder_inputs_layers, outputs = LSTM_decoder(state_h, dense_units=decoder_dense_units,
-                                                  lstm_units=decoder_lstm_units, decoder_cat_dict=decoder_cat_dict,
+                                                  lstm_units=encoder_lstm_units, decoder_cat_dict=decoder_cat_dict,
                                                   dropout=dropout, recurrent_dropout=recurrent_dropout)
 
     model = Model(inputs=encoder_inputs_layers + decoder_inputs_layers, outputs=outputs)

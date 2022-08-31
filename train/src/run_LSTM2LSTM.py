@@ -42,7 +42,7 @@ def data_preparation(hotel_id: int, date_feature: pd.DataFrame, cancel_target: p
     date_feature['canceled'] = hotel_cancel   # 原始值
     date_feature['canceled_label'] = hotel_cancel  # hotel_cancel_smooth.mean()
 
-    num_feature_columns = ['canceled', 'canceled_label']
+    num_feature_columns = ['canceled', 'canceled_label','days2vecation','vecation_days','Precp','PrecpHour','SunShine','Temperature']
 
     if smooth:
         # Smoothed features for input
@@ -83,10 +83,10 @@ if __name__ == "__main__":
     diff = args.diff
     smooth=args.smooth
 
-    n_splits = 15
+    n_splits = 7
     test_size = 28
 
-    categorical_features = ['vecation', 'weekdate']  # encoded_columns + nonencoded_columns
+    categorical_features = ['vecation', 'weekdate','season','sp_date','midd','sallery', 'is_rest_day','s_vecation', 'w_vecation','workingday','is_event','cov_policy']  # encoded_columns + nonencoded_columns
 
     for encoded_column in categorical_features:
         date_feature = labelencoding(date_feature, encoded_column)
