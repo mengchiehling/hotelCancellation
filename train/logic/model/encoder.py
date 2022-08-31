@@ -1,34 +1,38 @@
 from typing import Optional
 
 from tensorflow.keras.layers import Input, LSTM, Concatenate, ReLU, \
-    Conv1D, Flatten, MaxPooling1D, Dropout, BatchNormalization, Add, Bidirectional
+    Conv1D, Flatten, MaxPooling1D, Dropout, BatchNormalization, Add, Bidirectional, LayerNormalization
+from tensorflow.keras.regularizers import L2
 
 
-def residue_block(x, filters: int, idx: int):
+def residue_block(x, filters: int, idx: int, l2: float, momentum: float):
 
     # pre-activation residue block
     # https://towardsdatascience.com/residual-blocks-building-blocks-of-resnet-fd90ca15d6ec
     # https://www.researchgate.net/figure/Architecture-of-normal-residual-block-a-and-pre-activation-residual-block-b_fig2_337691625
 
-    x = BatchNormalization()(x)
+    regularizer = L2(l2=l2)
+
+    if idx > 0:
+        x = BatchNormalization(momentum=momentum)(x)
+        x = ReLU()(x)
+    x = Conv1D(filters=filters, kernel_size=3, kernel_regularizer=regularizer, name=f'conv1d_block{idx}_1')(x)
+    x = BatchNormalization(momentum=momentum)(x)
     x = ReLU()(x)
-    x = Conv1D(filters=filters, kernel_size=3, name=f'conv1d_block{idx}_1')(x)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
-    x = Conv1D(filters=filters, kernel_size=3, name=f'conv1d_block{idx}_2')(x)
+    x = Conv1D(filters=filters, kernel_size=3, kernel_regularizer=regularizer, name=f'conv1d_block{idx}_2')(x)
 
     return x
 
-def residue_layer(x, filters: int, idx: int):
+def residue_layer(x, filters: int, idx: int, l2: float, momentum: float):
 
-    x_b = residue_block(x, filters=filters, idx=idx)
+    x_b = residue_block(x, filters=filters, idx=idx, l2=l2, momentum=momentum)
 
     x = Add()([x, x_b])
 
     return x
 
 
-def CNN_encoder(n_inputs, n_features, filters: int, dropout: float=0):
+def CNN_encoder(n_inputs, n_features, filters: int, dropout: float=0, l2: float=0, momentum: float=0.99):
 
     inputs_layers = []
 
@@ -41,11 +45,11 @@ def CNN_encoder(n_inputs, n_features, filters: int, dropout: float=0):
     x = Concatenate(axis=2)(categorical_inputs + [encoder_numerical_inputs])
 
     idx = 0
-    x = residue_block(x, filters=filters, idx=idx)
+    x = residue_block(x, filters=filters, idx=idx, l2=l2, momentum=momentum)
     x = Dropout(rate=dropout)(x)
 
     idx += 1
-    x = residue_block(x, filters=filters, idx=idx)
+    x = residue_block(x, filters=filters, idx=idx, l2=l2, momentum=momentum)
     x = Dropout(rate=dropout)(x)
 
     x = MaxPooling1D(pool_size=2)(x)
@@ -79,25 +83,35 @@ def CNNRes_encoder(n_inputs, n_features, filters: int, dropout: float = 0):
     return inputs_layers, embedding
 
 
-def LSTM_block(x, lstm_units: int, dropout: float, recurrent_dropout: float, idx: int):
+def LSTM_block(x, lstm_units: int, dropout: float, recurrent_dropout: float, idx: int, momentum: float, l2: float):
 
-    x, state_h, state_c = LSTM(lstm_units, activation='relu', return_state=True, return_sequences=True,
-                               dropout=dropout,
-                               recurrent_dropout=recurrent_dropout, name=f'encoder_LSTM_{idx}')(x)
+    regularizer = L2(l2=l2)
 
+    if idx == 0:
+        x = LayerNormalization(momentum=momentum)(x)
+        x = ReLU()(x)
+    x, state_h, state_c = LSTM(lstm_units, activation='linear', return_state=True, return_sequences=True,
+                               dropout=dropout, recurrent_dropout=recurrent_dropout, regularizer=regularizer,
+                               name=f'encoder_LSTM_{idx}_1')(x)
+    x = LayerNormalization(momentum=momentum)(x)
+    x = ReLU()(x)
+    x, state_h, state_c = LSTM(lstm_units, activation='linear', return_state=True, return_sequences=True,
+                               dropout=dropout, recurrent_dropout=recurrent_dropout, regularizer=regularizer,
+                               name=f'encoder_LSTM_{idx}_2')(x)
     return x, state_h, state_c
 
 
-def LSTMRes_layer(x, lstm_units: int, dropout: float, recurrent_dropout: float, idx: int):
+def LSTMRes_layer(x, lstm_units: int, dropout: float, recurrent_dropout: float, idx: int, momentum: float, l2: float):
 
-    x_b = LSTM_block(x, lstm_units, dropout, recurrent_dropout, idx)
+    x_b = LSTM_block(x, lstm_units, dropout, recurrent_dropout, idx, momentum, l2)
 
     x = Add()([x, x_b])
 
     return x
 
 
-def LSTM_encoder(n_inputs, n_features, lstm_units: int, dropout: float=0, recurrent_dropout: float=0):
+def LSTM_encoder(n_inputs, n_features, lstm_units: int, dropout: float=0, recurrent_dropout: float=0,
+                 momentum: float=0.99, l2: float=0):
 
     inputs_layers = []
 
@@ -110,15 +124,16 @@ def LSTM_encoder(n_inputs, n_features, lstm_units: int, dropout: float=0, recurr
     x = Concatenate(axis=2)(categorical_inputs + [encoder_numerical_inputs])
 
     idx = 0
-    x, state_h, state_c = LSTM_block(x, lstm_units, dropout, recurrent_dropout, idx)
+    x, state_h, state_c = LSTM_block(x, lstm_units, dropout, recurrent_dropout, idx, momentum, l2)
 
     idx += 1
-    x, state_h, state_c = LSTM_block(x, lstm_units, dropout, recurrent_dropout, idx)
+    x, state_h, state_c = LSTM_block(x, lstm_units, dropout, recurrent_dropout, idx, momentum, l2)
 
     return inputs_layers, x, state_h, state_c
 
 
-def LSTMRes_encoder(n_inputs, n_features, lstm_units: int, dropout: float=0, recurrent_dropout: float=0):
+def LSTMRes_encoder(n_inputs, n_features, lstm_units: int, dropout: float=0, recurrent_dropout: float=0,
+                    momentum: float=0.99, l2: float=0):
 
     inputs_layers = []
 
@@ -131,10 +146,10 @@ def LSTMRes_encoder(n_inputs, n_features, lstm_units: int, dropout: float=0, rec
     x = Concatenate(axis=2)(categorical_inputs + [encoder_numerical_inputs])
 
     idx = 0
-    x, state_h, state_c = LSTMRes_layer(x, lstm_units, dropout, recurrent_dropout, idx)
+    x, state_h, state_c = LSTMRes_layer(x, lstm_units, dropout, recurrent_dropout, idx, momentum, l2)
 
     idx += 1
-    x, state_h, state_c = LSTMRes_layer(x, lstm_units, dropout, recurrent_dropout, idx)
+    x, state_h, state_c = LSTMRes_layer(x, lstm_units, dropout, recurrent_dropout, idx, momentum, l2)
 
     return inputs_layers, x, state_h, state_c
 

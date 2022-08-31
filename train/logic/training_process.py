@@ -10,9 +10,8 @@ from train.logic.model_selection import cross_validation
 
 
 def training_process(input_range: int, prediction_time: int, date_feature: pd.DataFrame,
-                     numerical_features, categorical_features, n_splits: int,
-                     max_train_size: int, test_size, batch_size: int, learning_rate: float,
-                     model_type: str, loss: str='mse', dropout: float=0,
+                     numerical_features, n_splits: int, max_train_size: int, test_size, batch_size: int,
+                     learning_rate: float, model_type: str, loss: str='mse', dropout: float=0,
                      recurrent_dropout: float=0, **kwargs):
 
     tf.random.set_seed(42)
@@ -25,7 +24,6 @@ def training_process(input_range: int, prediction_time: int, date_feature: pd.Da
     y_true, y_pred = cross_validation(date_feature=date_feature_copy, input_range=input_range,
                                       prediction_time=prediction_time, n_splits=n_splits, test_size=test_size,
                                       max_train_size=max_train_size, numerical_features=numerical_features,
-                                      categorical_features=categorical_features,
                                       loss=loss, batch_size=batch_size, learning_rate=learning_rate,
                                       model_type=model_type, dropout=dropout,
                                       recurrent_dropout=recurrent_dropout, **kwargs)
@@ -33,11 +31,11 @@ def training_process(input_range: int, prediction_time: int, date_feature: pd.Da
     return y_true, y_pred
 
 def training_process_opt(input_range: int, prediction_time: int, date_feature: pd.DataFrame,
-                         numerical_features, categorical_features, n_splits: int,
+                         numerical_features, n_splits: int,
                          max_train_size: int, test_size, batch_size, learning_rate, model_type: str,
                          loss: str='mse', encoder_filters: Optional[int]=None, encoder_lstm_units: Optional[int]=None,
                          decoder_lstm_units: Optional[int]=None, decoder_dense_units=None, recurrent_dropout=0.0,
-                         dropout=0.0):
+                         dropout=0.0, l2: float=0.0, momentum: float=0.99):
 
     # For hyperparameter optimization
 
@@ -54,14 +52,14 @@ def training_process_opt(input_range: int, prediction_time: int, date_feature: p
 
     y_true, y_pred = training_process(input_range=input_range, prediction_time=prediction_time,
                                       date_feature=date_feature, numerical_features=numerical_features,
-                                      categorical_features=categorical_features, n_splits=n_splits,
-                                      max_train_size=max_train_size,  test_size=test_size, loss=loss,
+                                      n_splits=n_splits, max_train_size=max_train_size,  test_size=test_size, loss=loss,
                                       batch_size=batch_size, learning_rate=learning_rate, model_type=model_type,
                                       dropout=dropout, recurrent_dropout=recurrent_dropout,
                                       encoder_lstm_units=encoder_lstm_units,
                                       encoder_filters=encoder_filters,
                                       decoder_lstm_units=decoder_lstm_units,
-                                      decoder_dense_units=decoder_dense_units)
+                                      decoder_dense_units=decoder_dense_units,
+                                      l2=l2, momentum=momentum)
 
     mape_list = []
 
