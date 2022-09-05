@@ -1,5 +1,6 @@
 import argparse
 import os
+import joblib
 from functools import partial
 from typing import Optional, List
 
@@ -8,7 +9,7 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from sklearn.metrics import mean_squared_error
 
-from src.io.path_definition import get_file
+from src.io.path_definition import get_file, get_project_dir
 from src.io.load_parameters import optimized_parameters
 from train.logic.training_process import training_process, training_process_opt
 from train.logic.optimization_process import optimization_process
@@ -118,7 +119,7 @@ if __name__ == "__main__":
 
     _ = optimization_process(training_process_opt_fn, pbounds, model_type=model_type)
 
-    params, _ = optimized_parameters("LSTM2LSTM_logs_[\d]{8}-[\d]{2}.json")
+    params, _ = optimized_parameters(f"{model_type}_logs_[\d]{8}-[\d]{2}.json")
 
     params['batch_size'] = int(params['batch_size'])
     params['decoder_dense_units'] = int(params['batch_size'])
@@ -128,6 +129,13 @@ if __name__ == "__main__":
                                             prediction_time=prediction_time, numerical_features=numerical_features,
                                             model_type=model_type, **params)
 
+    dir = os.path.join(get_project_dir(), 'data', 'model', model_type)
+    if not os.path.isdir(dir):
+        os.makedirs(dir)
+    model.save(os.path.join(dir, 'model'))
+
+    with open(os.path.join(dir, 'scaler')) as f:
+        joblib.dump(scaler, f)
 
 
 
