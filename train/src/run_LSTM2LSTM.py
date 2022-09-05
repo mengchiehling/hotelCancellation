@@ -86,7 +86,7 @@ if __name__ == "__main__":
     n_splits = 7
     test_size = 28
 
-    categorical_features = ['vecation', 'weekdate','season','sp_date','midd','sallery', 'is_rest_day','s_vecation', 'w_vecation','workingday','is_event','cov_policy']  # encoded_columns + nonencoded_columns
+    categorical_features = ['vecation', 'weekdate','season','midd','sallery', 'is_rest_day','s_vecation', 'w_vecation','workingday','is_event','cov_policy']  # encoded_columns + nonencoded_columns
 
     for encoded_column in categorical_features:
         date_feature = labelencoding(date_feature, encoded_column)

@@ -31,7 +31,7 @@ def build_model(n_inputs, n_features, decoder_cat_dict: Dict, n_outputs: int,
 
     decoder_inputs_layers, outputs = LSTM_decoder(state_h, dense_units=decoder_dense_units,
                                                   lstm_units=encoder_lstm_units, decoder_cat_dict=decoder_cat_dict,
-                                                  dropout=dropout, recurrent_dropout=recurrent_dropout,state_c=state_c)
+                                                  dropout=dropout, recurrent_dropout=recurrent_dropout,state_c=state_c,n_outputs=n_outputs)
 
 
     model = Model(inputs=encoder_inputs_layers + decoder_inputs_layers, outputs=outputs)
