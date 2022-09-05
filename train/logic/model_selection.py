@@ -43,6 +43,26 @@ def model_training_pipeline(date_feature: pd.DataFrame, test_size: int, input_ra
                             numerical_features, learning_rate: float, batch_size: int, model_type: str, loss: str='mse',
                             lead_time: int=0, dropout: float=0, recurrent_dropout: float=0, **kwargs):
 
+    '''
+    model_training_pipeline()
+
+    :param date_feature:
+    :param test_size:
+    :param input_range:
+    :param prediction_time:
+    :param numerical_features:
+    :param learning_rate:
+    :param batch_size:
+    :param model_type:
+    :param loss:
+    :param lead_time:
+    :param dropout:
+    :param recurrent_dropout:
+    :param kwargs:
+    :return:
+    '''
+
+
     df_train, df_val = train_test_split(date_feature, test_size=test_size, shuffle=False)
 
     df_val = pd.concat([df_train.iloc[-(input_range + lead_time + prediction_time):], df_val])

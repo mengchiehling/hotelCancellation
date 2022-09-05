@@ -83,27 +83,27 @@ def CNNRes_encoder(n_inputs, n_features, filters: int, dropout: float = 0):
     return inputs_layers, embedding
 
 
-def LSTM_block(x, lstm_units: int, dropout: float, recurrent_dropout: float, idx: int, momentum: float, l2: float):
+def LSTM_block(x, lstm_units: int, dropout: float, recurrent_dropout: float, idx: int, l2: float):
 
     regularizer = L2(l2=l2)
 
     if idx == 0:
-        x = LayerNormalization(momentum=momentum)(x)
+        x = LayerNormalization()(x)
         x = ReLU()(x)
     x, state_h, state_c = LSTM(lstm_units, activation='linear', return_state=True, return_sequences=True,
-                               dropout=dropout, recurrent_dropout=recurrent_dropout, regularizer=regularizer,
+                               dropout=dropout, recurrent_dropout=recurrent_dropout, kernel_regularizer=regularizer,
                                name=f'encoder_LSTM_{idx}_1')(x)
-    x = LayerNormalization(momentum=momentum)(x)
+    x = LayerNormalization()(x)
     x = ReLU()(x)
     x, state_h, state_c = LSTM(lstm_units, activation='linear', return_state=True, return_sequences=True,
-                               dropout=dropout, recurrent_dropout=recurrent_dropout, regularizer=regularizer,
+                               dropout=dropout, recurrent_dropout=recurrent_dropout, kernel_regularizer=regularizer,
                                name=f'encoder_LSTM_{idx}_2')(x)
     return x, state_h, state_c
 
 
-def LSTMRes_layer(x, lstm_units: int, dropout: float, recurrent_dropout: float, idx: int, momentum: float, l2: float):
+def LSTMRes_layer(x, lstm_units: int, dropout: float, recurrent_dropout: float, idx: int, l2: float):
 
-    x_b = LSTM_block(x, lstm_units, dropout, recurrent_dropout, idx, momentum, l2)
+    x_b = LSTM_block(x, lstm_units, dropout, recurrent_dropout, idx, l2)
 
     x = Add()([x, x_b])
 
@@ -111,7 +111,7 @@ def LSTMRes_layer(x, lstm_units: int, dropout: float, recurrent_dropout: float, 
 
 
 def LSTM_encoder(n_inputs, n_features, lstm_units: int, dropout: float=0, recurrent_dropout: float=0,
-                 momentum: float=0.99, l2: float=0):
+                 l2: float=0):
 
     inputs_layers = []
 
@@ -124,16 +124,16 @@ def LSTM_encoder(n_inputs, n_features, lstm_units: int, dropout: float=0, recurr
     x = Concatenate(axis=2)(categorical_inputs + [encoder_numerical_inputs])
 
     idx = 0
-    x, state_h, state_c = LSTM_block(x, lstm_units, dropout, recurrent_dropout, idx, momentum, l2)
+    x, state_h, state_c = LSTM_block(x, lstm_units, dropout, recurrent_dropout, idx, l2)
 
     idx += 1
-    x, state_h, state_c = LSTM_block(x, lstm_units, dropout, recurrent_dropout, idx, momentum, l2)
+    x, state_h, state_c = LSTM_block(x, lstm_units, dropout, recurrent_dropout, idx, l2)
 
     return inputs_layers, x, state_h, state_c
 
 
 def LSTMRes_encoder(n_inputs, n_features, lstm_units: int, dropout: float=0, recurrent_dropout: float=0,
-                    momentum: float=0.99, l2: float=0):
+                    l2: float=0):
 
     inputs_layers = []
 
@@ -146,10 +146,10 @@ def LSTMRes_encoder(n_inputs, n_features, lstm_units: int, dropout: float=0, rec
     x = Concatenate(axis=2)(categorical_inputs + [encoder_numerical_inputs])
 
     idx = 0
-    x, state_h, state_c = LSTMRes_layer(x, lstm_units, dropout, recurrent_dropout, idx, momentum, l2)
+    x, state_h, state_c = LSTMRes_layer(x, lstm_units, dropout, recurrent_dropout, idx, l2)
 
     idx += 1
-    x, state_h, state_c = LSTMRes_layer(x, lstm_units, dropout, recurrent_dropout, idx, momentum, l2)
+    x, state_h, state_c = LSTMRes_layer(x, lstm_units, dropout, recurrent_dropout, idx, l2)
 
     return inputs_layers, x, state_h, state_c
 

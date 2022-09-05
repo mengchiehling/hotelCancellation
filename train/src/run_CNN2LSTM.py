@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 from src.io.path_definition import get_file
+from src.io.load_parameters import optimized_parameters
 from train.logic.training_process import training_process, training_process_opt
 from train.logic.optimization_process import optimization_process
 from train.logic.data_preparation import data_preparation
@@ -61,6 +62,10 @@ if __name__ == "__main__":
                                       model_type=model_type, max_train_size=365)
 
     optimized_parameters = optimization_process(training_process_opt_fn, pbounds, model_type=model_type)
+
+    params, _ = optimized_parameters("CNN2LSTM_logs_[\d]{8}-[\d]{2}.json")
+
+
 
 
 
