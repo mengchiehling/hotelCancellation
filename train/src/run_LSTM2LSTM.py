@@ -7,7 +7,7 @@ from typing import Optional, List
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error
 
 from src.io.path_definition import get_file, get_project_dir
 from src.io.load_parameters import optimized_parameters
@@ -136,6 +136,19 @@ if __name__ == "__main__":
 
     with open(os.path.join(dir, 'scaler')) as f:
         joblib.dump(scaler, f)
+
+
+    # change to different metrics
+
+    y_true, y_pred = training_process(input_range=input_range, prediction_time=prediction_time,
+                                      date_featur=date_feature, numerical_features=numerical_features, n_splits=n_splits,
+                                      max_train_size=365, test_size=test_size, model_type=model_type, loss='mse',
+                                      **params)
+
+    adapted_mape = mean_absolute_percentage_error(y_true+1, y_pred+1)
+
+    print(adapted_mape)
+
 
 
 
