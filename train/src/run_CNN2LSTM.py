@@ -9,9 +9,10 @@ from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from sklearn.metrics import mean_squared_error
 
 from src.io.path_definition import get_file
+from src.io.load_parameters import optimized_parameters
 from train.logic.training_process import training_process, training_process_opt
 from train.logic.optimization_process import optimization_process
-
+from train.logic.data_preparation import data_preparation
 
 hotel_info = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_hotel_info.csv')))
 
@@ -111,5 +112,5 @@ if __name__ == "__main__":
 
     optimized_parameters = optimization_process(training_process_opt_fn, pbounds, model_type=model_type)
 
-
+    params, _ = optimized_parameters("CNN2LSTM_logs_[\d]{8}-[\d]{2}.json")
 
