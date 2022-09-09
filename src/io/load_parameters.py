@@ -16,7 +16,7 @@ def retrieve_hyperparameter_files(search_pattern: str):
     '''
 
 
-    dir_ = os.path.join(get_project_dir(), 'data', 'optimization')
+    dir_ = os.path.join(get_project_dir(), 'data', 'optimization', 'without_category')
 
 
     res = [f for f in os.listdir(dir_) if re.search(search_pattern, f)]

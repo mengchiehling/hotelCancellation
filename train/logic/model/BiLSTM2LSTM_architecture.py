@@ -26,8 +26,7 @@ def build_model(n_inputs, n_features, n_outputs: int, decoder_cat_dict: Dict,
                                                                 recurrent_dropout=recurrent_dropout,
                                                                 dropout=dropout)
 
-    outputs = LSTM_decoder(state_h, dense_units=decoder_dense_units, decoder_cat_dict=decoder_cat_dict,
-                           lstm_units=encoder_lstm_units, n_outputs=n_outputs,
+    outputs = LSTM_decoder(state_h, dense_units=decoder_dense_units, lstm_units=encoder_lstm_units, n_outputs=n_outputs,
                            dropout=dropout, recurrent_dropout=recurrent_dropout,
                            state_c=state_c)
 
