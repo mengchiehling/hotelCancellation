@@ -27,7 +27,7 @@ def LSTMRes_layer(x, lstm_units: int, dropout: float, recurrent_dropout: float, 
 def LSTM_decoder(state_h, lstm_units, dense_units, n_outputs: int,
                  decoder_cat_dict, dropout: float=0, recurrent_dropout: float=0, state_c=None):
 
-    inputs_layers, categorical_inputs = generate_categorical_embeddings(state_h, decoder_cat_dict)
+    inputs_layers, categorical_inputs = generate_categorical_embeddings(section='decoder', cat_dict=decoder_cat_dict)
 
     categorical_inputs.append(RepeatVector(n_outputs)(state_h))
 

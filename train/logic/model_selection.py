@@ -9,64 +9,106 @@ from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.optimizers import Adam
 
 from train.logic.model.LSTM2LSTM_architecture import build_model
-from train.logic.data_preparation import to_supervised, parse_tf_input
+from train.logic.data_preparation import tf_input_pipeline
 
 
-def model_training(date_feature: pd.DataFrame, test_size: int, input_range: int, prediction_time: int,
-                   numerical_features, categorical_features, category_input_dim: Dict, learning_rate: float,
-                   batch_size: int, model_type: str, loss: str='mse', lead_time: int=0, dropout: float=0,
-                   recurrent_dropout: float=0, **kwargs):
 
-    df_train, df_val = train_test_split(date_feature, test_size=test_size, shuffle=False)
+def feature_normalization(df_train, df_val, features: List):
 
-    df_val = pd.concat([df_train.iloc[-(input_range + lead_time + prediction_time):], df_val])
+    scaler = MinMaxScaler()
 
-    results_train = to_supervised(df_train, input_range=input_range, prediction_time=prediction_time,
-                                  numerical_features=numerical_features, categorical_features=categorical_features)
+    df_train.loc[:, features] = scaler.fit_transform(df_train[features])
 
-    for c, v in category_input_dim.items():
-        results_train['decoder_X_cat'][c]['input_dim'] = v
+    df_val.loc[:, features] = scaler.transform(df_val[features])
 
-    results_val = to_supervised(df_val, input_range=input_range, prediction_time=prediction_time,
-                                numerical_features=numerical_features, categorical_features=categorical_features)
+    return df_train, df_val, scaler
 
-    _, n_inputs, n_features = results_train['encoder_X_num'].shape
-    _, n_outputs, _ = results_train['y_label'].shape
 
-    assert model_type in ['LSTM2LSTM', 'CNN2LSTM', 'BiLSTM2LSTM']
-    # model architecture according to model_name
-
-    m = importlib.import_module(f"train.logic.model.{model_type}_architecture")
-
-    model = m.build_model(n_inputs=n_inputs, n_features=n_features, decoder_cat_dict=results_train['decoder_X_cat'],
-                          dropout=dropout, recurrent_dropout=recurrent_dropout, n_outputs=n_outputs, **kwargs)
-
-    # we can have customized optimizer as well
+def model_training(model, X_train, y_train, X_val, y_val, batch_size, learning_rate: float, loss: str):
 
     optimizer = Adam(learning_rate=learning_rate)
 
     model.compile(loss=loss, optimizer=optimizer)  # replace model.compile(loss=loss, optimizer='Adam')
 
-    X_train, y_train = parse_tf_input(results_train)
-    X_val, y_val = parse_tf_input(results_val)
-
     earlystopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
 
     callbacks = [earlystopping]
 
-    model.fit(X_train, {'outputs': y_train['outputs']}, epochs=20, batch_size=batch_size, verbose=0,
-              validation_data=(X_val, {'outputs': y_val['outputs']}), shuffle=True, callbacks=callbacks)
+    X_tf_train = {'encoder_X_num': X_train['encoder_X_num']}
+    X_tf_train.update(X_train['encoder_X_cat'])
+    X_tf_train.update(X_train['decoder_X_cat'])
+
+    X_tf_val = {'encoder_X_num': X_val['encoder_X_num']}
+    X_tf_val.update(X_val['encoder_X_cat'])
+    X_tf_val.update(X_val['decoder_X_cat'])
+
+    model.fit(X_tf_train, {'outputs': y_train['outputs']}, epochs=20, batch_size=batch_size, verbose=0,
+              validation_data=(X_tf_val, {'outputs': y_val['outputs']}), shuffle=True, callbacks=callbacks)
 
     return model
 
 
+def model_training_pipeline(date_feature: pd.DataFrame, test_size: int, input_range: int, prediction_time: int,
+                            numerical_features, categorical_features,learning_rate: float, batch_size: int, model_type: str, loss: str='mse',
+                            lead_time: int=0, dropout: float=0, recurrent_dropout: float=0, **kwargs):
+
+    '''
+    model_training_pipeline()
+
+    :param date_feature:
+    :param test_size:
+    :param input_range:
+    :param prediction_time:
+    :param numerical_features:
+    :param learning_rate:
+    :param batch_size:
+    :param model_type:
+    :param loss:
+    :param lead_time:
+    :param dropout:
+    :param recurrent_dropout:
+    :param kwargs:
+    :return:
+    '''
+
+
+    df_train, df_val = train_test_split(date_feature, test_size=test_size, shuffle=False)
+
+    df_val = pd.concat([df_train.iloc[-(input_range + lead_time + prediction_time):], df_val])
+
+    df_train, df_val, scaler = feature_normalization(df_train, df_val, numerical_features)
+
+    X_train, y_train = tf_input_pipeline(df_train, input_range=input_range, prediction_time=prediction_time,
+                                         numerical_features=numerical_features, categorical_features= categorical_features)
+
+    X_val, y_val = tf_input_pipeline(df_val, input_range=input_range, prediction_time=prediction_time,
+                                     numerical_features=numerical_features, categorical_features= categorical_features)
+
+    _, n_inputs, n_features = X_train['encoder_X_num'].shape
+    _, n_outputs, _ = y_train['outputs'].shape
+
+    assert model_type in ['LSTM2LSTM', 'CNN2LSTM', 'BiLSTM2LSTM']
+
+    m = importlib.import_module(f"train.logic.model.{model_type}_architecture")
+
+    model = m.build_model(n_inputs=n_inputs, n_features=n_features, dropout=dropout,
+                          encoder_cat_dict=X_train['encoder_X_cat'], decoder_cat_dict=X_train['decoder_X_cat'],
+                          recurrent_dropout=recurrent_dropout, n_outputs=n_outputs, **kwargs)
+
+    # we can have customized optimizer as well
+
+    model = model_training(model, X_train, y_train, X_val, y_val, batch_size=batch_size,
+                           learning_rate=learning_rate, loss=loss)
+
+    return model, scaler
+
+
 def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, input_range: int,
                      prediction_time: int, max_train_size: int, numerical_features: List,
-                     categorical_features: List, batch_size: int, learning_rate: float,
-                     model_type: str, loss: str='mse', lead_time: int=0, dropout: float=0, recurrent_dropout: float=0,
+                     batch_size: int, learning_rate: float, model_type: str, loss: str='mse',
+                     lead_time: int=0, dropout: float=0, recurrent_dropout: float=0,
+                     categorical_features: Optional[List[str]]=None,
                      **kwargs):
-
-    category_input_dim = {c: len(np.unique(date_feature[c].values)) for c in categorical_features}
 
     tscv = TimeSeriesSplit(n_splits=n_splits, test_size=test_size, max_train_size=max_train_size)
 
@@ -76,14 +118,7 @@ def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, 
     for n_fold, (train_index, test_index) in enumerate(tscv.split(date_feature)):
         test_index = np.arange(test_index[0] - input_range - lead_time - prediction_time, test_index[-1] + 1)
 
-        scaler = MinMaxScaler()  # default to 0 - 1
-
-        columns = date_feature.columns
-        columns = columns[~columns.isin(categorical_features)]
-
         df_train = date_feature.iloc[train_index]
-        #df_train.loc[:, columns] = scaler.fit_transform(df_train)
-        df_train.loc[:, columns] = scaler.fit_transform(df_train[columns])
 
         # Apply rescaling:
         # https://stackoverflow.com/questions/43467597/should-i-normalize-my-features-before-throwing-them-into-rnn
@@ -93,24 +128,28 @@ def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, 
         time_end = df_train.index[-1]
 
         df_test = date_feature.iloc[test_index]
-        df_test.loc[:, columns] = scaler.transform(df_test[columns])
 
         print(f"fold {n_fold}: training: {time_begin} - {time_end}, testing: {df_test.index[0]} - {df_test.index[-1]}")
 
-        results_test = to_supervised(df_test, input_range=input_range, prediction_time=prediction_time,
-                                     numerical_features=numerical_features, categorical_features=categorical_features)
-        X_test, y_test = parse_tf_input(results_test)
+        model, scaler = model_training_pipeline(date_feature=df_train, test_size=test_size, input_range=input_range,
+                                                prediction_time=prediction_time, numerical_features=numerical_features,
+                                                categorical_features= categorical_features,
+                                                loss=loss, learning_rate=learning_rate, batch_size=batch_size,
+                                                model_type=model_type, dropout=dropout,
+                                                recurrent_dropout=recurrent_dropout, **kwargs)
+
+        df_test.loc[:, numerical_features] = scaler.transform(df_test[numerical_features])
+
+        X_test, y_test = tf_input_pipeline(df_test, input_range=input_range, prediction_time=prediction_time,
+                                           numerical_features=numerical_features, categorical_features= categorical_features)
 
         y_true.append(y_test['true'])
 
-        model = model_training(date_feature=df_train, test_size=test_size, input_range=input_range,
-                               prediction_time=prediction_time, category_input_dim=category_input_dim,
-                               numerical_features=numerical_features, categorical_features=categorical_features,
-                               loss=loss, learning_rate=learning_rate, batch_size=batch_size,
-                               model_type=model_type, dropout=dropout,
-                               recurrent_dropout=recurrent_dropout, **kwargs)
+        X_tf_test = {'encoder_X_num': X_test['encoder_X_num']}
+        X_tf_test.update(X_test['encoder_X_cat'])
+        X_tf_test.update(X_test['decoder_X_cat'])
 
-        pred = model.predict(X_test)
+        pred = model.predict(X_tf_test)
 
         y_pred.append(pred)
 

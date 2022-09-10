@@ -9,21 +9,22 @@ from src.logic.common.functions import parenthesis_striped
 
 
 def to_supervised(df: pd.DataFrame, input_range: int, prediction_time: int, numerical_features: List,
-                  categorical_features: List, lead_time: int=0, prediction: bool=False):
+                  categorical_features: Optional[List[str]]=None, lead_time: int=0, prediction: bool=False):
 
     day_increment = 1
 
     date_feature_numerical = df[numerical_features].drop(labels=['canceled_label'], axis=1)
-    date_feature_categorical = df[categorical_features]
-
     encoder_X_num = list()
-    # encoder categorical features
-    decoder_X_cat = {}
-    encoder_X_cat = {}
 
-    for c in categorical_features:
-        decoder_X_cat[c] = {'value': []}
-        encoder_X_cat[c] = {'value': []}
+    if categorical_features is not None:
+        date_feature_categorical = df[categorical_features]
+        # encoder categorical features
+        decoder_X_cat = {}
+        encoder_X_cat = {}
+
+        for c in categorical_features:
+            decoder_X_cat[f'{c}_decoder'] = []
+            encoder_X_cat[f'{c}_encoder'] = []
 
     if not prediction:
         y = list()
@@ -40,9 +41,10 @@ def to_supervised(df: pd.DataFrame, input_range: int, prediction_time: int, nume
 
             encoder_X_num.append(date_feature_numerical.iloc[in_start: in_end].values)
 
-            for c in categorical_features:
-                decoder_X_cat[c]['value'].append(date_feature_categorical.iloc[out_start: out_end][c])
-                encoder_X_cat[c]['value'].append(date_feature_categorical.iloc[in_start: in_end][c])
+            if categorical_features is not None:
+                for c in categorical_features:
+                    decoder_X_cat[f'{c}_decoder'].append(date_feature_categorical.iloc[out_start: out_end][c])
+                    encoder_X_cat[f'{c}_encoder'].append(date_feature_categorical.iloc[in_start: in_end][c])
 
             if not prediction:
                 y.append(df.iloc[out_start: out_end]['canceled'].tolist())
@@ -58,15 +60,18 @@ def to_supervised(df: pd.DataFrame, input_range: int, prediction_time: int, nume
         y = np.array(y).reshape(shape_0, shape_1, 1)
         y_label = np.array(y_label).reshape(shape_0, shape_1, 1)
 
-    for c in categorical_features:
-        decoder_X_cat[c]['value'] = np.array(decoder_X_cat[c]['value'])
-        decoder_X_cat[c]['value'] = decoder_X_cat[c]['value'].reshape(-1, prediction_time, 1)
-        encoder_X_cat[c]['value'] = np.array(encoder_X_cat[c]['value'])
-        encoder_X_cat[c]['value'] = encoder_X_cat[c]['value'].reshape(-1, input_range, 1)
+    if categorical_features is not None:
+        for layer_name in decoder_X_cat.keys():
+            decoder_X_cat[layer_name] = np.array(decoder_X_cat[layer_name])
+            decoder_X_cat[layer_name] = decoder_X_cat[layer_name].reshape(-1, prediction_time, 1)
+        for layer_name in encoder_X_cat.keys():
+            encoder_X_cat[layer_name] = np.array(encoder_X_cat[layer_name])
+            encoder_X_cat[layer_name] = encoder_X_cat[layer_name].reshape(-1, input_range, 1)
 
-    results = {'encoder_X_num': np.array(encoder_X_num),
-               'encoder_X_cat': encoder_X_cat,
-               'decoder_X_cat': decoder_X_cat}
+    results = {'encoder_X_num': np.array(encoder_X_num)}
+    if categorical_features is not None:
+        results.update({'encoder_X_cat': encoder_X_cat,
+                        'decoder_X_cat': decoder_X_cat})
 
     if not prediction:
         results['y'] = y  # 原始值
@@ -77,13 +82,9 @@ def to_supervised(df: pd.DataFrame, input_range: int, prediction_time: int, nume
 
 def parse_tf_input(results: Dict, prediction: bool = False):
 
-    X = {'encoder_X_num': results['encoder_X_num']}
-
-    # for key, value in results['encoder_X_cat'].items():
-    #     X[f"{key}_encoder"] = value['value']
-
-    for key, value in results['decoder_X_cat'].items():
-        X[f"{key}_decoder"] = value['value']
+    X = {'encoder_X_num': results['encoder_X_num'],
+         'encoder_X_cat': results.get('encoder_X_cat', None),
+         'decoder_X_cat': results.get('decoder_X_cat', None)}
 
     if prediction:
         return X
@@ -93,25 +94,36 @@ def parse_tf_input(results: Dict, prediction: bool = False):
         return X, y
 
 
-def generate_categorical_embeddings(x, decoder_cat_dict: Optional[Dict]=None):
+def generate_categorical_embeddings(section: str, cat_dict: Optional[Dict]=None):
 
     inputs_layers = []
     categorical_inputs = []
 
-    if decoder_cat_dict:
-        for key, item in decoder_cat_dict.items():
-            q = item['value']
+    if cat_dict:
+        for key, value in cat_dict.items():
+            q = value
             _, shape_1, shape_2 = q.shape
 
-            cat_input = Input(shape=(shape_1, shape_2), name=f"{key}_decoder")
+            cat_input = Input(shape=(shape_1, shape_2), name=f"{key}")
 
             inputs_layers.append(cat_input)
 
-            input_dim = item['input_dim']
+            input_dim = len(np.unique(value))
             y_embedding = Embedding(input_dim, 1)(cat_input)
-            y_embedding = TimeDistributed(GlobalAveragePooling1D(), name=f"{parenthesis_striped(key)}_decoder_embed")(
+            y_embedding = TimeDistributed(GlobalAveragePooling1D(), name=f"{parenthesis_striped(key)}_{section}_embed")(
                 y_embedding)
 
             categorical_inputs.append(y_embedding)
 
     return inputs_layers, categorical_inputs
+
+
+def tf_input_pipeline(df: pd.DataFrame, input_range: int, prediction_time: int, numerical_features,
+                      categorical_features: Optional[List[str]]=None):
+
+    results = to_supervised(df, input_range=input_range, prediction_time=prediction_time,
+                            numerical_features=numerical_features, categorical_features=categorical_features)
+
+    X, y = parse_tf_input(results)
+
+    return X, y

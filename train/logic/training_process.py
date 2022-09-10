@@ -10,10 +10,11 @@ from train.logic.model_selection import cross_validation
 
 
 def training_process(input_range: int, prediction_time: int, date_feature: pd.DataFrame,
-                     numerical_features, categorical_features, n_splits: int,
-                     max_train_size: int, test_size, batch_size: int, learning_rate: float,
+                     numerical_features, n_splits: int, max_train_size: int, test_size,
+                     batch_size: int, learning_rate: float,
                      model_type: str, loss: str='mse', dropout: float=0,
-                     recurrent_dropout: float=0, **kwargs):
+                     recurrent_dropout: float=0, categorical_features: Optional[List[str]]=None,
+                     **kwargs):
 
     tf.random.set_seed(42)
     os.environ['PYTHONHASHSEED']='42'
@@ -32,9 +33,10 @@ def training_process(input_range: int, prediction_time: int, date_feature: pd.Da
 
     return y_true, y_pred
 
+
 def training_process_opt(input_range: int, prediction_time: int, date_feature: pd.DataFrame,
-                         numerical_features, categorical_features, n_splits: int,
-                         max_train_size: int, test_size, batch_size, learning_rate, model_type: str,
+                         numerical_features, n_splits: int, max_train_size: int, test_size, batch_size,
+                         learning_rate, model_type: str, categorical_features: Optional[List[str]]=None,
                          loss: str='mse', encoder_filters: Optional[int]=None, encoder_lstm_units: Optional[int]=None,
                          decoder_lstm_units: Optional[int]=None, decoder_dense_units=None, recurrent_dropout=0.0,
                          dropout=0.0):

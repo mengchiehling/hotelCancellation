@@ -3,6 +3,8 @@ from typing import Optional
 from tensorflow.keras.layers import Input, LSTM, Concatenate, ReLU, \
     Conv1D, Flatten, MaxPooling1D, Dropout, BatchNormalization, Add, Bidirectional
 
+from train.logic.data_preparation import generate_categorical_embeddings
+
 
 def residue_block(x, filters: int, idx: int):
 
@@ -97,15 +99,14 @@ def LSTMRes_layer(x, lstm_units: int, dropout: float, recurrent_dropout: float, 
     return x
 
 
-def LSTM_encoder(n_inputs, n_features, lstm_units: int, dropout: float=0, recurrent_dropout: float=0):
+def LSTM_encoder(n_inputs, n_features, lstm_units: int, encoder_cat_dict, dropout: float=0, recurrent_dropout: float=0):
 
-    inputs_layers = []
+    inputs_layers, categorical_inputs = generate_categorical_embeddings(section='encoder',
+                                                                        cat_dict=encoder_cat_dict)
 
     encoder_numerical_inputs = Input(shape=(n_inputs, n_features), name='encoder_X_num')
 
     inputs_layers.append(encoder_numerical_inputs)
-
-    categorical_inputs = []
 
     x = Concatenate(axis=2)(categorical_inputs + [encoder_numerical_inputs])
 
