@@ -88,16 +88,10 @@ if __name__ == "__main__":
     n_splits = 7
     test_size = 28
 
-    categorical_features = [#'vecation',
-                            'weekdate',
-        #       'season','midd','sallery', 'is_rest_day',
-                            #'s_vecation',
-                            # 'w_vecation','workingday','is_event',
-                            # 'cov_policy'
-    ]  # encoded_columns + nonencoded_columns
+    categorical_features = []#['vecation', 'weekdate','season','midd','sallery', 'is_rest_day','s_vecation', 'w_vecation','workingday','is_event','cov_policy']  # encoded_columns + nonencoded_columns
 
-    for encoded_column in categorical_features:
-        date_feature = labelencoding(date_feature, encoded_column)
+    #for encoded_column in categorical_features:
+        #date_feature = labelencoding(date_feature, encoded_column)
 
     # categorical_features = ['midd(大學期中考週)', 'sallery(發薪日區間，每月5-10號)', 'is_rest_day(是否為假日)',
     #                         'vecation(是否為國定連假)', 's_vecation(暑假)', 'w_vecation(寒假)', 'weekdate(星期，數值型)']
@@ -124,7 +118,8 @@ if __name__ == "__main__":
 
     _ = optimization_process(training_process_opt_fn, pbounds, model_type=model_type)
 
-    params, _ = optimized_parameters(f"{model_type}_logs_[\d]{8}-[\d]{2}.json")
+    params, _ = optimized_parameters(f"{model_type}" + "_logs_[\d]{8}-[\d]{2}.json")
+    #params, _ = optimized_parameters(f"{model_type}_logs_[\d]{8}-[\d]{2}.json")
     params['batch_size'] = int(params['batch_size'])
     params['decoder_dense_units'] = int(params['batch_size'])
     params['encoder_lstm_units'] = int(params['encoder_lstm_units'])
