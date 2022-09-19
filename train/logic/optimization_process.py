@@ -12,7 +12,7 @@ from bayes_opt.util import load_logs
 from src.io.path_definition import get_project_dir
 
 
-def optimization_process(fn, pbounds: Dict, model_type: str) -> Tuple[Dict, np.ndarray]:
+def optimization_process(fn, pbounds: Dict, model_type: str, hotel_id: int) -> Tuple[Dict, np.ndarray]:
 
     """
     Bayesian optimization process interface. Returns hyperparameters of machine learning algorithms and the
@@ -27,7 +27,7 @@ def optimization_process(fn, pbounds: Dict, model_type: str) -> Tuple[Dict, np.n
     """
 
     bayesianOptimization = {'init_points': 8,
-                            'n_iter': 48,
+                            'n_iter': 32,
                             'acq': 'ucb'}
 
     optimizer = BayesianOptimization(
@@ -41,8 +41,8 @@ def optimization_process(fn, pbounds: Dict, model_type: str) -> Tuple[Dict, np.n
     if not os.path.isdir(dir):
         os.makedirs(dir)
 
-    logs = f"{dir}/{model_type}_logs_{export_form}.json"
-    previous_logs = glob(f"{dir}/{model_type}_logs_*.json")
+    logs = f"{dir}/{hotel_id}_{model_type}_logs_{export_form}.json"
+    previous_logs = glob(f"{dir}/{hotel_id}_{model_type}_logs_*.json")
 
     if previous_logs:
         load_logs(optimizer, logs=previous_logs)
