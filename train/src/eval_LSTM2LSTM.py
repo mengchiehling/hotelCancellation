@@ -76,10 +76,10 @@ if __name__ == "__main__":
     numerical_features, date_feature = data_preparation(hotel_id, date_feature, cancel_target)
 
     y_true, y_pred = training_process(input_range=input_range, prediction_time=prediction_time,
-                                      date_featur=date_feature, numerical_features=numerical_features, n_splits=n_splits,
+                                      date_feature=date_feature, numerical_features=numerical_features, n_splits=n_splits,
                                       max_train_size=365, test_size=test_size, model_type=model_type, loss='mse',
                                       **params)
 
-    adapted_mape = mean_absolute_percentage_error(y_true+1, y_pred+1)
+    adapted_mape = mean_absolute_percentage_error(np.array(y_true)+1, np.array(y_pred)+1)
 
     print(adapted_mape)

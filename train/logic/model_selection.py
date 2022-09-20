@@ -130,10 +130,14 @@ def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, 
 
         X_test, y_test = tf_input_pipeline(df_test, input_range=input_range, prediction_time=prediction_time,
                                            numerical_features=numerical_features)
+        y_true_extend = np.repeat(y_test['true'].reshape(-1, 1), len(scaler.scale_), axis=1)
+        y_true_reshape = scaler.inverse_transform(y_true_extend)[:, 0].reshape(y_test['true'].shape)
+        y_true.append(y_true_reshape)
 
-        y_true.append(y_test['true'])
         pred = model.predict(X_test)
 
-        y_pred.append(pred)
+        y_pred_extend = np.repeat(pred.reshape(-1, 1), len(scaler.scale_), axis=1)
+        y_pred_reshape = scaler.inverse_transform(y_pred_extend)[:, 0].reshape(pred.shape)
+        y_pred.append(y_pred_reshape)
 
     return np.array(y_true), np.array(y_pred)
