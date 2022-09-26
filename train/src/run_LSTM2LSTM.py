@@ -1,10 +1,8 @@
 import argparse
 import os
-import joblib
-from datetime import datetime
 from functools import partial
 from typing import Optional, List
-
+from datetime import datetime
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
@@ -90,39 +88,46 @@ if __name__ == "__main__":
                                       input_range=input_range, test_size=test_size, loss='mse', model_type=model_type,
                                       max_train_size=365)
 
-    _ = optimization_process(training_process_opt_fn, pbounds, model_type=model_type, hotel_id=hotel_id)
+
+    #_ = optimization_process(training_process_opt_fn, pbounds, model_type=model_type, hotel_id=hotel_id)
+    # 寫法好像不太一樣 ? 左邊為何要寫 _ =
+    #_ = optimization_process(training_process_opt_fn, pbounds, model_type=model_type)
 
     params, _ = optimized_parameters(f"{hotel_id}_{model_type}"+"_logs_[\d]{8}-[\d]{2}.json")
 
-    params['batch_size'] = int(params['batch_size'])
-    params['decoder_dense_units'] = int(params['batch_size'])
-    params['encoder_lstm_units'] = int(params['encoder_lstm_units'])
+    #params['batch_size'] = int(params['batch_size'])
+    #params['decoder_dense_units'] = int(params['batch_size'])
+    #params['encoder_lstm_units'] = int(params['encoder_lstm_units'])
 
-    model, scaler = model_training_pipeline(date_feature=date_feature, test_size=test_size, input_range=input_range,
-                                            prediction_time=prediction_time, numerical_features=numerical_features,
-                                            model_type=model_type, **params)
+    #從這行一直到 joblib.dump可以另外開一個script放，以儲存訓練好的模型，不用到時候還要在訓練一遍
+    #只有儲存參數(告訴我訓練模型該如何調)，但並沒有儲存和模型有關的資訊
+    #params, _ = optimized_parameters(f"{model_type}" + "_logs_[\d]{8}-[\d]{2}.json")
 
-    dir = os.path.join(get_project_dir(), 'data', 'model', model_type)
-    if not os.path.isdir(dir):
-        os.makedirs(dir)
-    model.save(os.path.join(dir, 'model'))
+    #params['batch_size'] = int(params['batch_size'])
+    #params['decoder_dense_units'] = int(params['batch_size'])
+    #params['encoder_lstm_units'] = int(params['encoder_lstm_units'])
 
-    with open(os.path.join(dir, 'scaler'), mode='wb') as f:
-        joblib.dump(scaler, f)
+    #model, scaler = model_training_pipeline(date_feature=date_feature, test_size=test_size, input_range=input_range,
+                                            #prediction_time=prediction_time, numerical_features=numerical_features,
+                                            #categorical_features=categorical_features,model_type=model_type, **params)
+
+
+    #dir = os.path.join(get_project_dir(), 'data', 'model', model_type)
+
+    #if not os.path.isdir(dir):
+        #os.makedirs(dir)
+    #model.save(os.path.join(dir, 'model'))
+
+    #with open(os.path.join(dir, 'scaler'), mode='wb') as f:
+        #joblib.dump(scaler, f)
 
 
     # change to different metrics
 
-    # y_true, y_pred = training_process(input_range=input_range, prediction_time=prediction_time,
-    #                                   date_featur=date_feature, numerical_features=numerical_features, n_splits=n_splits,
-    #                                   max_train_size=365, test_size=test_size, model_type=model_type, loss='mse',
-    #                                   **params)
-    #
-    # adapted_mape = mean_absolute_percentage_error(y_true+1, y_pred+1)
-    #
-    # print(adapted_mape)
+    #y_true, y_pred = training_process(input_range=input_range, prediction_time=prediction_time,
+                                      #date_feature=date_feature, numerical_features=numerical_features, categorical_features=categorical_features,
+                                      #n_splits=n_splits,max_train_size=180, test_size=test_size, model_type=model_type, loss='mse', **params)
 
+    #adapted_mape = mean_absolute_percentage_error(y_true+1, y_pred+1)
 
-
-
-
+    #print(adapted_mape)
