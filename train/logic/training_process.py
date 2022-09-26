@@ -73,6 +73,8 @@ def training_process_opt(input_range: int, prediction_time: int, date_feature: p
     #
     # mape = np.nanmean(np.concatenate(mape_list))
 
-    symmetric_difference = abs(y_true[:, :, :, 0] - y_pred[:, :, :, 0])/(abs(y_true[:, :, :, 0]) + abs(y_pred[:, :, :, 0]))/2
+    symmetric_difference = abs(y_true[:, :, :, 0] - y_pred[:, :, :, 0])/(abs(y_true[:, :, :, 0]) + abs(y_pred[:, :, :, 0]) + 1)/2
 
-    return -symmetric_difference.mean()
+    mean_symmetric_diff = symmetric_difference.mean()
+
+    return -mean_symmetric_diff
