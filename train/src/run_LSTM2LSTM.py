@@ -2,7 +2,7 @@ import argparse
 import os
 from functools import partial
 from typing import Optional, List
-
+import joblib
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     # change to different metrics
 
     y_true, y_pred = training_process(input_range=input_range, prediction_time=prediction_time,
-                                      date_featur=date_feature, numerical_features=numerical_features, categorical_features=categorical_features,
+                                      date_feature=date_feature, numerical_features=numerical_features, categorical_features=categorical_features,
                                       n_splits=n_splits,max_train_size=365, test_size=test_size, model_type=model_type, loss='mse', **params)
 
     adapted_mape = mean_absolute_percentage_error(y_true+1, y_pred+1)
