@@ -61,18 +61,20 @@ def training_process_opt(input_range: int, prediction_time: int, date_feature: p
                                       decoder_dense_units=decoder_dense_units,
                                       l2=l2, momentum=momentum)
 
-    # mape_list = []
+    mape_list = []
 
-    # for ix in range(n_splits):
-    #     diff = abs((y_true[ix, :, :, 0] - y_pred[ix, :, :, 0]) / y_true[ix, :, :, 0])
-    #
-    #     for iy in range(test_size):
-    #         diff[iy][np.isinf(diff[iy])] = np.nan
-    #
-    #     mape_list.append(diff)
-    #
-    # mape = np.nanmean(np.concatenate(mape_list))
+    for ix in range(n_splits):
+        diff = abs((y_true[ix, :, :, 0] - y_pred[ix, :, :, 0]) / y_true[ix, :, :, 0])
 
-    symmetric_difference = abs(y_true[:, :, :, 0] - y_pred[:, :, :, 0])/(abs(y_true[:, :, :, 0]) + abs(y_pred[:, :, :, 0]))/2
+       for iy in range(test_size):
+          diff[iy][np.isinf(diff[iy])] = np.nan
 
-    return -symmetric_difference.mean()
+         mape_list.append(diff)
+
+     mape = np.nanmean(np.concatenate(mape_list))
+
+    #symmetric_difference = abs(y_true[:, :, :, 0] - y_pred[:, :, :, 0])/(abs(y_true[:, :, :, 0]) + abs(y_pred[:, :, :, 0]))/2
+
+    #return -symmetric_difference.mean()
+
+    return mape

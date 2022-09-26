@@ -89,11 +89,11 @@ if __name__ == "__main__":
                                       max_train_size=365)
 
 
-    #_ = optimization_process(training_process_opt_fn, pbounds, model_type=model_type, hotel_id=hotel_id)
+    optimization_process(training_process_opt_fn, pbounds, model_type=model_type, hotel_id=hotel_id)
     # 寫法好像不太一樣 ? 左邊為何要寫 _ =
     #_ = optimization_process(training_process_opt_fn, pbounds, model_type=model_type)
 
-    params, _ = optimized_parameters(f"{hotel_id}_{model_type}"+"_logs_[\d]{8}-[\d]{2}.json")
+    #params, _ = optimized_parameters(f"{hotel_id}_{model_type}"+"_logs_[\d]{8}-[\d]{2}.json")
 
     #params['batch_size'] = int(params['batch_size'])
     #params['decoder_dense_units'] = int(params['batch_size'])
