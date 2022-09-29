@@ -30,6 +30,7 @@ def training_process(input_range: int, prediction_time: int, date_feature: pd.Da
 
     return y_true, y_pred
 
+
 def training_process_opt(input_range: int, prediction_time: int, date_feature: pd.DataFrame,
                          numerical_features, n_splits: int,
                          max_train_size: int, test_size, batch_size, learning_rate, model_type: str,
@@ -61,20 +62,22 @@ def training_process_opt(input_range: int, prediction_time: int, date_feature: p
                                       decoder_dense_units=decoder_dense_units,
                                       l2=l2, momentum=momentum)
 
-    # mape_list = []
+    mape_list = []
 
-    # for ix in range(n_splits):
-    #     diff = abs((y_true[ix, :, :, 0] - y_pred[ix, :, :, 0]) / y_true[ix, :, :, 0])
-    #
-    #     for iy in range(test_size):
-    #         diff[iy][np.isinf(diff[iy])] = np.nan
-    #
-    #     mape_list.append(diff)
-    #
-    # mape = np.nanmean(np.concatenate(mape_list))
+    for ix in range(n_splits):
+        # dimension: n_splits, batch, time, dense_units
+        # optimized to first day
+        diff = abs((y_true[ix, :, 0, 0] - y_pred[ix, :, 0, 0]) / y_true[ix, :, 0, 0])
 
-    symmetric_difference = abs(y_true[:, :, :, 0] - y_pred[:, :, :, 0])/(abs(y_true[:, :, :, 0]) + abs(y_pred[:, :, :, 0]) + 1)/2
+        for iy in range(test_size):
+            diff[iy][np.isinf(diff[iy])] = np.nan
 
-    mean_symmetric_diff = symmetric_difference.mean()
+        mape_list.append(diff)
 
-    return -mean_symmetric_diff
+    mape = np.nanmean(np.concatenate(mape_list))
+
+    #symmetric_difference = abs(y_true[:, :, :, 0] - y_pred[:, :, :, 0])/(abs(y_true[:, :, :, 0]) + abs(y_pred[:, :, :, 0]))/2
+
+    #return -symmetric_difference.mean()
+
+    return -mape
