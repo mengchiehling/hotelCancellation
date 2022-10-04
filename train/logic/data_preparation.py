@@ -29,7 +29,6 @@ def to_supervised(df: pd.DataFrame, input_range: int, prediction_time: int, nume
     day_increment = 1
 
     date_feature_numerical = df[numerical_features]
-
     encoder_X_num = list()
 
     if not prediction:

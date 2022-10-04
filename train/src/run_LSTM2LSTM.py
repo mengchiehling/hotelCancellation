@@ -1,18 +1,13 @@
 import argparse
 import os
 from functools import partial
-from typing import Optional, List
 from datetime import datetime
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder, MinMaxScaler
-from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error
 
-from src.io.path_definition import get_file, get_project_dir
-from src.io.load_parameters import optimized_parameters
-from train.logic.training_process import training_process, training_process_opt
+from src.io.path_definition import get_file
+from train.logic.training_process import training_process_opt
 from train.logic.optimization_process import optimization_process
-from train.logic.model_selection import model_training_pipeline
 
 
 hotel_info = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_hotel_info.csv')))
@@ -44,13 +39,14 @@ def data_preparation(hotel_id: int, date_feature: pd.DataFrame, cancel_target: p
     twn_covid_data['date'] = twn_covid_data['date'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d').strftime("%Y/%m/%d"))
     twn_covid_data.set_index('date', inplace=True)
 
-    covid_features = []#['new_cases', 'new_deaths']
+    covid_features_num = ['new_cases', 'new_deaths']
+    covid_features_cat = ['']
 
-    date_feature = date_feature.join(twn_covid_data[covid_features].fillna(0))
+    date_feature = date_feature.join(twn_covid_data[covid_features_num + covid_features_cat].fillna(0))
 
-    num_feature_columns = ['canceled'] + covid_features
+    num_feature_columns = ['canceled'] + covid_features_num
 
-    return num_feature_columns, date_feature
+    return num_feature_columns,  covid_features_cat, date_feature
 
 
 if __name__ == "__main__":
@@ -71,7 +67,11 @@ if __name__ == "__main__":
     n_splits = 7
     test_size = 28
 
-    numerical_features, date_feature = data_preparation(hotel_id, date_feature, cancel_target)
+    categorical_features = []
+
+    numerical_features, covid_features_cat, date_feature = data_preparation(hotel_id, date_feature, cancel_target)
+
+    categorical_features = categorical_features + covid_features_cat
 
     date_feature = date_feature[numerical_features]
 

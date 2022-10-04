@@ -65,12 +65,11 @@ def training_process_opt(input_range: int, prediction_time: int, date_feature: p
     mape_list = []
 
     for ix in range(n_splits):
-        # dimension: n_splits, batch, time, dense_units
+        # dimension: n_splits, test_size, time, dense_units
         # optimized to first day
-        diff = abs((y_true[ix, :, 0, 0] - y_pred[ix, :, 0, 0]) / y_true[ix, :, 0, 0])
+        diff = abs((y_true[ix, :, 0, 0] - y_pred[ix, :, 0, 0]) / y_true[ix, :, 0, 0] + 1)
 
-        for iy in range(test_size):
-            diff[iy][np.isinf(diff[iy])] = np.nan
+        diff[np.isinf(diff)] = np.nan
 
         mape_list.append(diff)
 

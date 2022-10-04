@@ -40,7 +40,7 @@ def data_preparation(hotel_id: int, date_feature: pd.DataFrame, cancel_target: p
     twn_covid_data['date'] = twn_covid_data['date'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d').strftime("%Y/%m/%d"))
     twn_covid_data.set_index('date', inplace=True)
 
-    covid_features = ['new_cases', 'new_deaths']
+    covid_features = [] #['new_cases', 'new_deaths']
 
     date_feature = date_feature.join(twn_covid_data[covid_features].fillna(0))
 
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     model_type = 'LSTM2LSTM'
     max_train_size = 365
 
-    test_size = 30
+    test_size = 28
 
     numerical_features, date_feature = data_preparation(hotel_id, date_feature, cancel_target)
     date_feature = date_feature[numerical_features]
@@ -88,7 +88,7 @@ if __name__ == "__main__":
 
     if not os.path.isdir(dir):
         os.makedirs(dir)
-    model.save(os.path.join(dir, 'model'))
+    model.save(os.path.join(dir, 'model.h5'))
 
     with open(os.path.join(dir, 'scaler'), mode='wb') as f:
         joblib.dump(scaler, f)

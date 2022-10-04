@@ -119,9 +119,11 @@ def LSTM_encoder(n_inputs, n_features, lstm_units: int, dropout: float=0, recurr
 
     inputs_layers.append(encoder_numerical_inputs)
 
-    categorical_inputs = []
+    # categorical_inputs = []
 
-    x = Concatenate(axis=2)(categorical_inputs + [encoder_numerical_inputs])
+    # x = Concatenate(axis=2)(categorical_inputs + [encoder_numerical_inputs])
+
+    x = encoder_numerical_inputs
 
     idx = 0
     x, state_h, state_c = LSTM_block(x, lstm_units, dropout, recurrent_dropout, idx, l2)
