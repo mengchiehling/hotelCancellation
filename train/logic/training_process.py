@@ -68,11 +68,20 @@ def training_process_opt(input_range: int, prediction_time: int, date_feature: p
     mape_list = []
 
     for ix in range(n_splits):
-        diff = abs((y_true[ix, :, :, 0] - y_pred[ix, :, :, 0]) / y_true[ix, :, :, 0])
 
-        for iy in range(test_size):
-            diff[iy][np.isinf(diff[iy])] = np.nan
+        # 去除真實值為0 (只計算未來第一天的)
+        diff = abs((y_true[ix, :, 0, 0] - y_pred[ix, :, 0, 0]) / y_true[ix, :, 0, 0])
 
+        # 去除真實值為0 (計算全部)
+        #diff = abs((y_true[ix, :, :, 0] - y_pred[ix, :, :, 0]) / y_true[ix, :, :, 0])
+
+        # 分母加 1
+        #diff = abs((y_true[ix, :, :, 0] - y_pred[ix, :, :, 0]) / y_true[ix, :, :, 0]+1)
+
+        #for iy in range(test_size):
+            #diff[iy][np.isinf(diff[iy])] = np.nan
+
+        diff[np.isinf(diff)] = np.nan
         mape_list.append(diff)
 
     mape = np.nanmean(np.concatenate(mape_list))

@@ -2,6 +2,7 @@ import argparse
 import os
 from functools import partial
 from typing import Optional, List
+from datetime import datetime
 import joblib
 import numpy as np
 import pandas as pd
@@ -15,12 +16,16 @@ from train.logic.optimization_process import optimization_process
 from train.logic.model_selection import model_training_pipeline
 
 
+
 hotel_info = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_hotel_info.csv')))
 
-cancel_target = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_target.csv')), index_col=0)
-date_feature = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_date_feature.csv')), index_col=0)
+cancel_target = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_target.csv')))
+date_feature = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_date_feature.csv')))
 hotel_meta = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_hotel_info.csv')), index_col=0)
 
+covid_data = pd.read_excel(get_file(os.path.join('data', 'owid-covid-data.xlsx'))
+                           #,engine='openpyxl'
+                           )
 # le = LabelEncoder()
 # date_feature['weekdate(星期，數值型)'] = le.fit_transform(date_feature['weekdate(星期，數值型)'])
 
@@ -33,37 +38,55 @@ def labelencoding(df, column: str):
     return df
 
 
-def data_preparation(hotel_id: int, date_feature: pd.DataFrame, cancel_target: pd.DataFrame, smooth:bool=False,
-                     diff: Optional[List[int]]=None):
+def data_preparation(hotel_id: int, date_feature: pd.DataFrame, cancel_target: pd.DataFrame
+                     # , smooth:bool=False, diff: Optional[List[int]]=None
+                     ):
 
     column = f"hotel_{hotel_id}_canceled"
 
+    cancel_target['date'] = cancel_target['date'].apply(lambda x: datetime.strptime(x, '%Y/%m/%d').strftime("%Y/%m/%d"))
+    cancel_target.set_index('date', inplace=True)
+
     hotel_cancel = cancel_target[column].replace("-", np.nan).dropna().astype(int)
 
+    date_feature['date'] = date_feature['date'].apply(lambda x: datetime.strptime(x, '%Y/%m/%d').strftime("%Y/%m/%d"))
+    date_feature.set_index('date', inplace=True)
     date_feature = date_feature.loc[hotel_cancel.index]
+
     date_feature['canceled'] = hotel_cancel   # 原始值
-    date_feature['canceled_label'] = hotel_cancel  # hotel_cancel_smooth.mean()
+    #date_feature['canceled_label'] = hotel_cancel  # hotel_cancel_smooth.mean()
 
-    num_feature_columns = ['canceled', 'canceled_label','days2vecation','vecation_days','Precp','PrecpHour','SunShine','Temperature']
+    twn_covid_data = covid_data[covid_data['iso_code'] == 'TWN']
+    twn_covid_data['date'] = twn_covid_data['date'].apply(
+        lambda x: datetime.strptime(x, '%Y-%m-%d').strftime("%Y/%m/%d"))
+    twn_covid_data.set_index('date', inplace=True)
 
-    if smooth:
+    covid_features_num = []  # ['new_cases', 'new_deaths']
+    covid_features_cat = []
+
+    date_feature = date_feature.join(twn_covid_data[covid_features_num+covid_features_cat].fillna(0))
+
+    num_feature_columns = ['canceled'] + covid_features_num
+    #num_feature_columns = ['canceled', 'canceled_label','days2vecation','vecation_days','Precp','PrecpHour','SunShine','Temperature']
+
+    #if smooth:
         # Smoothed features for input
 
-        for window in [3, 14]:
-            c  = f'canceled_{window}_roll'
-            roll = hotel_cancel.rolling(window=window, min_periods=1)
-            date_feature[c] = roll.mean()
-            num_feature_columns.extend([c])
-        date_feature['MACD'] = date_feature[f'canceled_3_roll'] - date_feature[f'canceled_14_roll']
-        num_feature_columns.append('MACD')
+        #for window in [3, 14]:
+            #c  = f'canceled_{window}_roll'
+            #roll = hotel_cancel.rolling(window=window, min_periods=1)
+            #date_feature[c] = roll.mean()
+            #num_feature_columns.extend([c])
+        #date_feature['MACD'] = date_feature[f'canceled_3_roll'] - date_feature[f'canceled_14_roll']
+        #num_feature_columns.append('MACD')
 
-    if diff is not None:
-        for time_diff in diff:
-            c = f'diff_{time_diff}'
-            date_feature[c] = (date_feature['canceled'] - date_feature['canceled'].shift(time_diff)).fillna(0)
-            num_feature_columns.append(c)
+    #if diff is not None:
+        #for time_diff in diff:
+            #c = f'diff_{time_diff}'
+            #date_feature[c] = (date_feature['canceled'] - date_feature['canceled'].shift(time_diff)).fillna(0)
+            #num_feature_columns.append(c)
 
-    return num_feature_columns, date_feature
+    return num_feature_columns, covid_features_cat, date_feature
 
 
 if __name__ == "__main__":
@@ -73,8 +96,8 @@ if __name__ == "__main__":
     parser.add_argument('--input_range', type=int, help='length of input time series')
     parser.add_argument('--prediction_time', type=int, help='length of output time series')
     parser.add_argument('--hotel_id', type=int, help='id of hotel, should exists in cancel_dataset_target.csv')
-    parser.add_argument('--diff', type=int,  nargs='+', help='差分', default=[])
-    parser.add_argument('--smooth', action='store_true')
+    #parser.add_argument('--diff', type=int,  nargs='+', help='差分', default=[])
+    #parser.add_argument('--smooth', action='store_true')
 
     args = parser.parse_args()
 
@@ -82,8 +105,8 @@ if __name__ == "__main__":
     prediction_time = args.prediction_time
     hotel_id = args.hotel_id
     model_type = 'LSTM2LSTM'
-    diff = args.diff
-    smooth=args.smooth
+    #diff = args.diff
+    #smooth=args.smooth
 
     n_splits = 7
     test_size = 28
@@ -93,14 +116,15 @@ if __name__ == "__main__":
     #for encoded_column in categorical_features:
         #date_feature = labelencoding(date_feature, encoded_column)
 
-    # categorical_features = ['midd(大學期中考週)', 'sallery(發薪日區間，每月5-10號)', 'is_rest_day(是否為假日)',
-    #                         'vecation(是否為國定連假)', 's_vecation(暑假)', 'w_vecation(寒假)', 'weekdate(星期，數值型)']
+
 
     # categorical_features = ['vecation(是否為國定連假)', 'weekdate(星期，數值型)']  # encoded_columns + nonencoded_columns
 
-    numerical_features, date_feature = data_preparation(hotel_id, date_feature, cancel_target,
-                                                        smooth=smooth, diff=diff)
+    numerical_features, covid_features_cat, date_feature = data_preparation(hotel_id, date_feature, cancel_target
+                                                        # , smooth=smooth, diff=diff
+                                                        )
 
+    categorical_features = categorical_features + covid_features_cat
     date_feature = date_feature[numerical_features+categorical_features]
 
     pbounds = {'batch_size': (4, 16),
@@ -108,7 +132,9 @@ if __name__ == "__main__":
                'encoder_lstm_units': (32, 512),
                'dropout': (0.1, 0.4),
                'recurrent_dropout': (0.1, 0.4),
-               'decoder_dense_units': (8, 32)}
+               'decoder_dense_units': (8, 32),
+               'l2': (0, 0.1)}
+
 
     training_process_opt_fn = partial(training_process_opt, prediction_time=prediction_time, date_feature=date_feature,
                                       numerical_features=numerical_features, categorical_features=categorical_features,
@@ -116,35 +142,8 @@ if __name__ == "__main__":
                                       test_size=test_size, loss='mse', model_type=model_type,
                                       max_train_size=365)
 
-    _ = optimization_process(training_process_opt_fn, pbounds, model_type=model_type)
-
-    params, _ = optimized_parameters(f"{model_type}" + "_logs_[\d]{8}-[\d]{2}.json")
-    #params, _ = optimized_parameters(f"{model_type}_logs_[\d]{8}-[\d]{2}.json")
-    params['batch_size'] = int(params['batch_size'])
-    params['decoder_dense_units'] = int(params['batch_size'])
-    params['encoder_lstm_units'] = int(params['encoder_lstm_units'])
-
-    model, scaler = model_training_pipeline(date_feature=date_feature, test_size=test_size, input_range=input_range,
-                                            prediction_time=prediction_time, numerical_features=numerical_features,
-                                            categorical_features=categorical_features,model_type=model_type, **params)
+    optimization_process(training_process_opt_fn, pbounds, model_type=model_type, hotel_id=hotel_id)
 
 
-    dir = os.path.join(get_project_dir(), 'data', 'model', model_type)
-
-    if not os.path.isdir(dir):
-        os.makedirs(dir)
-    model.save(os.path.join(dir, 'model'))
-
-    with open(os.path.join(dir, 'scaler')) as f:
-        joblib.dump(scaler, f)
 
 
-    # change to different metrics
-
-    y_true, y_pred = training_process(input_range=input_range, prediction_time=prediction_time,
-                                      date_feature=date_feature, numerical_features=numerical_features, categorical_features=categorical_features,
-                                      n_splits=n_splits,max_train_size=365, test_size=test_size, model_type=model_type, loss='mse', **params)
-
-    adapted_mape = mean_absolute_percentage_error(y_true+1, y_pred+1)
-
-    print(adapted_mape)
