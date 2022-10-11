@@ -14,10 +14,10 @@ def training_process(input_range: int, prediction_time: int, date_feature: pd.Da
                      learning_rate: float, model_type: str, loss: str='mse', dropout: float=0,
                      recurrent_dropout: float=0, **kwargs):
 
-    tf.random.set_seed(42)
-    os.environ['PYTHONHASHSEED']='42'
-    random.seed(42)
-    np.random.seed(42)
+    # tf.random.set_seed(42)
+    # os.environ['PYTHONHASHSEED']='42'
+    # random.seed(42)
+    # np.random.seed(42)
 
     date_feature_copy = date_feature.copy()
 
@@ -62,18 +62,23 @@ def training_process_opt(input_range: int, prediction_time: int, date_feature: p
                                       decoder_dense_units=decoder_dense_units,
                                       l2=l2, momentum=momentum)
 
-    mape_list = []
+    absolute_percentage_error = []
 
     for ix in range(n_splits):
         # dimension: n_splits, test_size, time, dense_units
         # optimized to first day
-        diff = abs((y_true[ix, :, 0, 0] - y_pred[ix, :, 0, 0]) / y_true[ix, :, 0, 0] + 1)
+        diff = abs((y_true[ix, :, 0, 0] - y_pred[ix, :, 0, 0]) / (y_true[ix, :, 0, 0]+1) )
 
-        diff[np.isinf(diff)] = np.nan
+        absolute_percentage_error.append(diff)
 
-        mape_list.append(diff)
+    absolute_percentage_error = np.array(absolute_percentage_error)
 
-    mape = np.nanmean(np.concatenate(mape_list))
+    absolute_percentage_error[np.isinf(absolute_percentage_error)] = np.nan
+
+    mape = np.nanmean(np.concatenate(absolute_percentage_error))
+
+    if np.isnan(mape):
+        mape = 10
 
     #symmetric_difference = abs(y_true[:, :, :, 0] - y_pred[:, :, :, 0])/(abs(y_true[:, :, :, 0]) + abs(y_pred[:, :, :, 0]))/2
 
