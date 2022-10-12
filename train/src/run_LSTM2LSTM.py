@@ -113,8 +113,8 @@ if __name__ == "__main__":
 
     categorical_features = ['vecation', 'weekdate','season','midd','sallery', 'is_rest_day','s_vecation', 'w_vecation','workingday','is_event','cov_policy']#['vecation', 'weekdate','season','midd','sallery', 'is_rest_day','s_vecation', 'w_vecation','workingday','is_event','cov_policy']  # encoded_columns + nonencoded_columns
 
-    #for encoded_column in categorical_features:
-        #date_feature = labelencoding(date_feature, encoded_column)
+    for encoded_column in categorical_features:
+        date_feature = labelencoding(date_feature, encoded_column)
 
 
 
@@ -125,9 +125,10 @@ if __name__ == "__main__":
                                                         )
 
     categorical_features = categorical_features + covid_features_cat
+
     date_feature = date_feature[numerical_features+categorical_features]
 
-    pbounds = {'batch_size': (4, 16),
+    pbounds = {'batch_size': (4, 16), #(50,200)
                'learning_rate': (0.0001, 0.01),
                'encoder_lstm_units': (32, 512),
                'dropout': (0.1, 0.4),
