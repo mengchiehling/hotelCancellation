@@ -16,10 +16,10 @@ def training_process(input_range: int, prediction_time: int, date_feature: pd.Da
                      recurrent_dropout: float=0, categorical_features: Optional[List[str]]=None,
                      **kwargs):
 
-    tf.random.set_seed(42)
-    os.environ['PYTHONHASHSEED']='42'
-    random.seed(42)
-    np.random.seed(42)
+    #tf.random.set_seed(42)
+    #os.environ['PYTHONHASHSEED']='42'
+    #random.seed(42)
+    #np.random.seed(42)
 
     date_feature_copy = date_feature.copy()
 
@@ -76,7 +76,7 @@ def training_process_opt(input_range: int, prediction_time: int, date_feature: p
         #diff = abs((y_true[ix, :, :, 0] - y_pred[ix, :, :, 0]) / y_true[ix, :, :, 0])
 
         # 分母加 1
-        #diff = abs((y_true[ix, :, :, 0] - y_pred[ix, :, :, 0]) / y_true[ix, :, :, 0]+1)
+        #diff = abs((y_true[ix, :, :, 0] - y_pred[ix, :, :, 0]) / (y_true[ix, :, :, 0]+1))
 
         #for iy in range(test_size):
             #diff[iy][np.isinf(diff[iy])] = np.nan

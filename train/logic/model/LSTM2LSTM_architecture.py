@@ -10,16 +10,26 @@ LSTM2LSTM parameters:
         decoder_dense_units
 '''
 
+import tensorflow as tf
+import os
+import random
+import numpy as np
+
 from typing import Dict
-
 from tensorflow.keras.models import Model
-
 from train.logic.model.encoder import LSTM_encoder
 from train.logic.model.decoder import LSTM_decoder
 
 
 def build_model(n_inputs, n_features, encoder_cat_dict: Dict, decoder_cat_dict: Dict, n_outputs: int,
                 dropout: float=0, recurrent_dropout: float=0, **kwargs):
+
+
+    tf.random.set_seed(42)
+    os.environ['PYTHONHASHSEED']='42'
+    random.seed(42)
+    np.random.seed(42)
+
 
     encoder_lstm_units = kwargs.get('encoder_lstm_units')
 

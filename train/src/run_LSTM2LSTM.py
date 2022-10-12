@@ -66,7 +66,7 @@ def data_preparation(hotel_id: int, date_feature: pd.DataFrame, cancel_target: p
 
     date_feature = date_feature.join(twn_covid_data[covid_features_num+covid_features_cat].fillna(0))
 
-    num_feature_columns = ['canceled'] + covid_features_num
+    num_feature_columns = ['canceled','days2vecation','vecation_days','Precp','PrecpHour','SunShine','Temperature'] + covid_features_num
     #num_feature_columns = ['canceled', 'canceled_label','days2vecation','vecation_days','Precp','PrecpHour','SunShine','Temperature']
 
     #if smooth:
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     n_splits = 7
     test_size = 28
 
-    categorical_features = []#['vecation', 'weekdate','season','midd','sallery', 'is_rest_day','s_vecation', 'w_vecation','workingday','is_event','cov_policy']  # encoded_columns + nonencoded_columns
+    categorical_features = ['vecation', 'weekdate','season','midd','sallery', 'is_rest_day','s_vecation', 'w_vecation','workingday','is_event','cov_policy']#['vecation', 'weekdate','season','midd','sallery', 'is_rest_day','s_vecation', 'w_vecation','workingday','is_event','cov_policy']  # encoded_columns + nonencoded_columns
 
     #for encoded_column in categorical_features:
         #date_feature = labelencoding(date_feature, encoded_column)
