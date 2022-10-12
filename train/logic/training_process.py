@@ -65,9 +65,10 @@ def training_process_opt(input_range: int, prediction_time: int, date_feature: p
     mape_list = []
 
     for ix in range(n_splits):
-        # dimension: n_splits, test_size, time, dense_units
-        # optimized to first day
-        diff = abs((y_true[ix, :, 0, 0] - y_pred[ix, :, 0, 0]) / y_true[ix, :, 0, 0] + 1)
+        #dimension: n_splits, test_size, time, dense_units
+        #optimized to first day
+        diff = abs((y_true[ix, :, 0, 0] - y_pred[ix, :, 0, 0]) / y_true[ix, :, 0, 0])
+        #diff = abs((y_true[ix, :, 0, 0] - y_pred[ix, :, 0, 0]) / (y_true[ix, :, 0, 0]+1))
 
         diff[np.isinf(diff)] = np.nan
 
@@ -75,6 +76,22 @@ def training_process_opt(input_range: int, prediction_time: int, date_feature: p
 
     mape = np.nanmean(np.concatenate(mape_list))
 
+    #absolute_percentage_error = []
+
+    #for ix in range(n_splits):
+        #dimension: n_splits, test_size, time, dense_units
+        #ptimized to first day
+
+        #diff = abs((y_true[ix, :, 0, 0] - y_pred[ix, :, 0, 0]) / y_true[ix, :, 0, 0])
+
+        #absolute_percentage_error.append(diff)
+
+    #absolute_percentage_error[np.isinf(absolute_percentage_error)] = np.nan
+
+    #mape = np.nanmean(np.concatenate(absolute_percentage_error))
+
+
+    #smape
     #symmetric_difference = abs(y_true[:, :, :, 0] - y_pred[:, :, :, 0])/(abs(y_true[:, :, :, 0]) + abs(y_pred[:, :, :, 0]))/2
 
     #return -symmetric_difference.mean()

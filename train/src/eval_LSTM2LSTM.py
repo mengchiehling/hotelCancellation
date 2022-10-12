@@ -92,9 +92,7 @@ if __name__ == "__main__" :
     # 做training或evaluation都要讀取數據
     numerical_features, date_feature = data_preparation(hotel_id, date_feature, cancel_target)
     date_feature = date_feature[numerical_features]
-    # 數值型+類別型，已經合成為date_feature ? 那下面training_process還需要三者都放進去嗎 ?
-    #date_feature = date_feature[numerical_features+categorical_features]
-    #params, _ = optimized_parameters(f"{hotel_id}_{model_type}" + "_logs_[\d]{8}-[\d]{2}.json")
+
     y_true, y_pred = training_process(input_range=input_range, prediction_time=prediction_time,
                                       date_feature=date_feature, numerical_features=numerical_features,
                                       n_splits=n_splits,max_train_size=365, test_size=test_size, model_type=model_type, loss='mse', **params)
