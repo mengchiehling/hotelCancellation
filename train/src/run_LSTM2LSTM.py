@@ -113,18 +113,20 @@ if __name__ == "__main__":
 
     categorical_features = ['vecation', 'weekdate','season','midd','sallery', 'is_rest_day','s_vecation', 'w_vecation','workingday','is_event','cov_policy']#['vecation', 'weekdate','season','midd','sallery', 'is_rest_day','s_vecation', 'w_vecation','workingday','is_event','cov_policy']  # encoded_columns + nonencoded_columns
 
-    for encoded_column in categorical_features:
+    numerical_features, covid_features_cat, date_feature = data_preparation(hotel_id, date_feature, cancel_target
+                                                        # , smooth=smooth, diff=diff
+                                                        )
+
+    categorical_features = categorical_features + covid_features_cat
+
+    for encoded_column in categorical_features :
         date_feature = labelencoding(date_feature, encoded_column)
 
 
 
     # categorical_features = ['vecation(是否為國定連假)', 'weekdate(星期，數值型)']  # encoded_columns + nonencoded_columns
 
-    numerical_features, covid_features_cat, date_feature = data_preparation(hotel_id, date_feature, cancel_target
-                                                        # , smooth=smooth, diff=diff
-                                                        )
 
-    categorical_features = categorical_features + covid_features_cat
 
     date_feature = date_feature[numerical_features+categorical_features]
 
