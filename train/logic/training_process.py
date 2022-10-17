@@ -14,10 +14,10 @@ def training_process(input_range: int, prediction_time: int, date_feature: pd.Da
                      learning_rate: float, model_type: str, loss: str='mse', dropout: float=0,
                      recurrent_dropout: float=0, **kwargs):
 
-    tf.random.set_seed(42)
-    os.environ['PYTHONHASHSEED']='42'
-    random.seed(42)
-    np.random.seed(42)
+    #tf.random.set_seed(42)
+    #os.environ['PYTHONHASHSEED']='42'
+    #random.seed(42)
+    #np.random.seed(42)
 
     date_feature_copy = date_feature.copy()
 
