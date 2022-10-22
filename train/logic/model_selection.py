@@ -32,7 +32,7 @@ def model_training(model, X_train, y_train, X_val, y_val, batch_size, learning_r
     earlystopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
 
     callbacks = [earlystopping]
-
+    # 原本 epochs 是設置20
     model.fit(X_train, {'outputs': y_train['outputs']}, epochs=20, batch_size=batch_size, verbose=0,
               validation_data=(X_val, {'outputs': y_val['outputs']}), shuffle=True, callbacks=callbacks)
 
@@ -107,7 +107,7 @@ def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, 
     for n_fold, (train_index, test_index) in enumerate(tscv.split(date_feature)):
 
         #若要訓練集與測試集的日期不重疊的話就註解掉下面這行
-        #test_index = np.arange(test_index[0] - input_range - lead_time - prediction_time, test_index[-1] + 1)
+        test_index = np.arange(test_index[0] - input_range - lead_time - prediction_time, test_index[-1] + 1)
 
         df_train = date_feature.iloc[train_index]
 

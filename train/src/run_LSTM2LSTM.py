@@ -65,17 +65,17 @@ if __name__ == "__main__":
     model_type = 'LSTM2LSTM'
 
     n_splits = 5
-    #test_size = 28
+    test_size = 28
 
     # 若要訓練集與測試集的日期不重疊就採用以下的
-    test_size = 28 + input_range + prediction_time
+    #test_size = 28 + input_range + prediction_time
 
     numerical_features, date_feature = data_preparation(hotel_id, date_feature, cancel_target)
     # print(numerical_features)
 
     date_feature = date_feature[numerical_features]
 
-    pbounds = {'batch_size': (50, 200) , #(24,48), (50,200) ,原本的都是(4,16)
+    pbounds = {'batch_size': (8, 136) , #(24,48), (50,200) ,原本的都是(4,16)
                'learning_rate': (0.0001, 0.01),
                'encoder_lstm_units': (32, 512),
                'dropout': (0.1, 0.4),
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     training_process_opt_fn = partial(training_process_opt, prediction_time=prediction_time, date_feature=date_feature,
                                       numerical_features=numerical_features, n_splits=n_splits,
                                       input_range=input_range, test_size=test_size, loss='mse', model_type=model_type,
-                                      max_train_size=200)
+                                      max_train_size=180)
 
 
     optimization_process(training_process_opt_fn, pbounds, model_type=model_type, hotel_id=hotel_id)
