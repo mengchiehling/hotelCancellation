@@ -32,7 +32,7 @@ def model_training(model, X_train, y_train, X_val, y_val, batch_size, learning_r
     earlystopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
 
     callbacks = [earlystopping]
-    # 原本 epochs 是設置20
+    # 原本 epochs 是設置20  # verbose=1可跑出結果
     model.fit(X_train, {'outputs': y_train['outputs']}, epochs=20, batch_size=batch_size, verbose=0,
               validation_data=(X_val, {'outputs': y_val['outputs']}), shuffle=True, callbacks=callbacks)
 

@@ -45,6 +45,7 @@ def data_preparation(hotel_id: int, date_feature: pd.DataFrame, cancel_target: p
     date_feature = date_feature.join(twn_covid_data[covid_features_num].fillna(0))
 
     num_feature_columns = ['canceled'] + covid_features_num
+    #num_feature_columns = ['canceled','days2vecation','vecation_days','Precp','PrecpHour','SunShine','Temperature'] + covid_features_num
 
     return num_feature_columns, date_feature
 
@@ -64,7 +65,7 @@ if __name__ == "__main__":
     hotel_id = args.hotel_id
     model_type = 'LSTM2LSTM'
 
-    n_splits = 5
+    n_splits = 7
     test_size = 28
 
     # 若要訓練集與測試集的日期不重疊就採用以下的
@@ -75,7 +76,7 @@ if __name__ == "__main__":
 
     date_feature = date_feature[numerical_features]
 
-    pbounds = {'batch_size': (8, 136) , #(24,48), (50,200) ,原本的都是(4,16)
+    pbounds = {'batch_size': (16, 64) , #(24,48), (50,200) ,原本的都是(4,16)
                'learning_rate': (0.0001, 0.01),
                'encoder_lstm_units': (32, 512),
                'dropout': (0.1, 0.4),
@@ -86,7 +87,7 @@ if __name__ == "__main__":
     training_process_opt_fn = partial(training_process_opt, prediction_time=prediction_time, date_feature=date_feature,
                                       numerical_features=numerical_features, n_splits=n_splits,
                                       input_range=input_range, test_size=test_size, loss='mse', model_type=model_type,
-                                      max_train_size=180)
+                                      max_train_size=365)
 
 
     optimization_process(training_process_opt_fn, pbounds, model_type=model_type, hotel_id=hotel_id)
