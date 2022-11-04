@@ -1,11 +1,10 @@
 import argparse
 import os
 from functools import partial
-from datetime import datetime
-import numpy as np
 import pandas as pd
 
-from src.io.path_definition import get_file
+from src.io.path_definition import get_file, _load_yaml
+from src.io.load_data import data_preparation
 from train.logic.training_process import training_process_opt
 from train.logic.optimization_process import optimization_process
 
@@ -15,38 +14,6 @@ hotel_info = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_hotel_inf
 cancel_target = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_target.csv')))
 date_feature = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_date_feature.csv')))
 hotel_meta = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_hotel_info.csv')), index_col=0)
-
-covid_data = pd.read_excel(get_file(os.path.join('data', 'owid-covid-data.xlsx')),
-                           #engine='openpyxl'
-                           )
-
-
-def data_preparation(hotel_id: int, date_feature: pd.DataFrame, cancel_target: pd.DataFrame):
-
-    column = f"hotel_{hotel_id}_canceled"
-
-    cancel_target['date'] = cancel_target['date'].apply(lambda x: datetime.strptime(x, '%Y/%m/%d').strftime("%Y/%m/%d"))
-    cancel_target.set_index('date', inplace=True)
-    hotel_cancel = cancel_target[column].replace("-", np.nan).dropna().astype(int)
-
-    date_feature['date'] = date_feature['date'].apply(lambda x: datetime.strptime(x, '%Y/%m/%d').strftime("%Y/%m/%d"))
-    date_feature.set_index('date', inplace=True)
-    date_feature = date_feature.loc[hotel_cancel.index]
-
-    date_feature['canceled'] = hotel_cancel   # 原始值
-
-    twn_covid_data = covid_data[covid_data['iso_code']=='TWN']
-    twn_covid_data['date'] = twn_covid_data['date'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d').strftime("%Y/%m/%d"))
-    twn_covid_data.set_index('date', inplace=True)
-
-    covid_features_num = ['new_cases', 'new_deaths']
-    covid_features_cat = ['']
-
-    date_feature = date_feature.join(twn_covid_data[covid_features_num + covid_features_cat].fillna(0))
-
-    num_feature_columns = ['canceled'] + covid_features_num
-
-    return num_feature_columns,  covid_features_cat, date_feature
 
 
 if __name__ == "__main__":
@@ -64,29 +31,26 @@ if __name__ == "__main__":
     hotel_id = args.hotel_id
     model_type = 'LSTM2LSTM'
 
-    n_splits = 7
-    test_size = 28
+    basic_parameters = _load_yaml(get_file(os.path.join('config', 'training_config.yml')))['basic_parameters']
+
+    n_splits = basic_parameters['n_splits']
+    test_size = basic_parameters['test_size']
+    max_train_size = basic_parameters['max_train_size']
 
     categorical_features = []
 
-    numerical_features, covid_features_cat, date_feature = data_preparation(hotel_id, date_feature, cancel_target)
-
-    categorical_features = categorical_features + covid_features_cat
+    numerical_features, date_feature = data_preparation(hotel_id, date_feature, cancel_target)
 
     date_feature = date_feature[numerical_features]
 
-    pbounds = {'batch_size': (4, 16),
-               'learning_rate': (0.0001, 0.01),
-               'encoder_lstm_units': (32, 512),
-               'dropout': (0.1, 0.4),
-               'recurrent_dropout': (0.1, 0.4),
-               'decoder_dense_units': (8, 32),
-               'l2': (0, 0.1)}
+    pbounds = _load_yaml(get_file(os.path.join('config', 'training_config.yml')))['lstm2lstm_pbounds']
+    for key, value in pbounds.items():
+        pbounds[key] = eval(value)
 
     training_process_opt_fn = partial(training_process_opt, prediction_time=prediction_time, date_feature=date_feature,
                                       numerical_features=numerical_features, n_splits=n_splits,
                                       input_range=input_range, test_size=test_size, loss='mse', model_type=model_type,
-                                      max_train_size=365)
+                                      max_train_size=max_train_size)
 
 
     optimization_process(training_process_opt_fn, pbounds, model_type=model_type, hotel_id=hotel_id)

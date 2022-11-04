@@ -9,7 +9,7 @@ from bayes_opt.logger import JSONLogger
 from bayes_opt.event import Events
 from bayes_opt.util import load_logs
 
-from src.io.path_definition import get_project_dir
+from src.io.path_definition import get_project_dir, get_file, _load_yaml
 
 
 def optimization_process(fn, pbounds: Dict, model_type: str, hotel_id: int) -> Tuple[Dict, np.ndarray]:
@@ -26,9 +26,9 @@ def optimization_process(fn, pbounds: Dict, model_type: str, hotel_id: int) -> T
         A tuple of dictionary containing optimized hyperparameters and oof-predictions
     """
 
-    bayesianOptimization = {'init_points': 8,
-                            'n_iter': 32,
-                            'acq': 'ucb'}
+    # So you do not have to change the hyperparameters explicitly to github everytime you change the code.
+    bayesianOptimization = _load_yaml(get_file(os.path.join('config', 'training_config.yml')))['bayesianOptimization']
+
 
     optimizer = BayesianOptimization(
         f=fn,

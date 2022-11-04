@@ -40,9 +40,11 @@ def CNN_encoder(n_inputs, n_features, filters: int, dropout: float=0, l2: float=
 
     inputs_layers.append(encoder_numerical_inputs)
 
-    categorical_inputs = []
+    # categorical_inputs = []
+    #
+    # x = Concatenate(axis=2)(categorical_inputs + [encoder_numerical_inputs])
 
-    x = Concatenate(axis=2)(categorical_inputs + [encoder_numerical_inputs])
+    x = encoder_numerical_inputs
 
     idx = 0
     x = residue_block(x, filters=filters, idx=idx, l2=l2, momentum=momentum)
