@@ -12,7 +12,7 @@ from bayes_opt.util import load_logs
 from src.io.path_definition import get_project_dir
 
 
-def optimization_process(fn, pbounds: Dict, model_type: str) -> Tuple[Dict, np.ndarray]:
+def optimization_process(fn, pbounds: Dict, model_type: str, hotel_id: int) -> Tuple[Dict, np.ndarray]:
 
     """
     Bayesian optimization process interface. Returns hyperparameters of machine learning algorithms and the
@@ -26,8 +26,8 @@ def optimization_process(fn, pbounds: Dict, model_type: str) -> Tuple[Dict, np.n
         A tuple of dictionary containing optimized hyperparameters and oof-predictions
     """
 
-    bayesianOptimization = {'init_points': 5,
-                            'n_iter': 25,
+    bayesianOptimization = {'init_points': 5, #init_points:8 , 5 (原始)
+                            'n_iter': 25,  #n_iter:32 , 25 (原始)
                             'acq': 'ucb'}
 
     optimizer = BayesianOptimization(
@@ -37,12 +37,12 @@ def optimization_process(fn, pbounds: Dict, model_type: str) -> Tuple[Dict, np.n
 
     export_form = datetime.now().strftime("%Y%m%d-%H")
 
-    dir = os.path.join(get_project_dir(), 'data', 'optimization')
+    dir = os.path.join(get_project_dir(), 'data', 'optimization', 'without_category')
     if not os.path.isdir(dir):
         os.makedirs(dir)
 
-    logs = f"{dir}/{model_type}_logs_{export_form}.json"
-    previous_logs = glob(f"{dir}/{model_type}_logs_*.json")
+    logs = f"{dir}/{hotel_id}_{model_type}_logs_{export_form}.json"
+    previous_logs = glob(f"{dir}/{hotel_id}_{model_type}_logs_*.json")
 
     if previous_logs:
         load_logs(optimizer, logs=previous_logs)
