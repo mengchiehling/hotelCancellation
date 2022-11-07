@@ -26,8 +26,8 @@ def optimization_process(fn, pbounds: Dict, model_type: str) -> Tuple[Dict, np.n
         A tuple of dictionary containing optimized hyperparameters and oof-predictions
     """
 
-    bayesianOptimization = {'init_points': 8,
-                            'n_iter': 48,
+    bayesianOptimization = {'init_points': 5,
+                            'n_iter': 25,
                             'acq': 'ucb'}
 
     optimizer = BayesianOptimization(

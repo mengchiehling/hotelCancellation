@@ -66,7 +66,7 @@ def data_preparation(hotel_id: int, date_feature: pd.DataFrame, cancel_target: p
 
     date_feature = date_feature.join(twn_covid_data[covid_features_num+covid_features_cat].fillna(0))
 
-    num_feature_columns = ['canceled','days2vecation','vecation_days','Precp','PrecpHour','SunShine','Temperature'] + covid_features_num
+    num_feature_columns = ['canceled'] + covid_features_num
     #num_feature_columns = ['canceled','days2vecation','vecation_days','Precp','PrecpHour','SunShine','Temperature'] + covid_features_num
 
     #if smooth:

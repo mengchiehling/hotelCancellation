@@ -65,25 +65,21 @@ def training_process_opt(input_range: int, prediction_time: int, date_feature: p
                                       decoder_lstm_units=decoder_lstm_units,
                                       decoder_dense_units=decoder_dense_units)
 
-    mape_list = []
+    absolute_percentage_error = []
 
     for ix in range(n_splits):
 
-        # 去除真實值為0 (只計算未來第一天的)
+        # dimension: n_splits, test_size, time, dense_units
+        # ptimized to first day
+
         diff = abs((y_true[ix, :, 0, 0] - y_pred[ix, :, 0, 0]) / y_true[ix, :, 0, 0])
+        # diff = abs((y_true[ix, :, 0, 0] - y_pred[ix, :, 0, 0]) / (y_true[ix, :, 0, 0]+1))
+        absolute_percentage_error.append(diff)
 
-        # 去除真實值為0 (計算全部)
-        #diff = abs((y_true[ix, :, :, 0] - y_pred[ix, :, :, 0]) / y_true[ix, :, :, 0])
+    absolute_percentage_error = np.array(absolute_percentage_error)
+    absolute_percentage_error[np.isinf(absolute_percentage_error)] = np.nan
 
-        # 分母加 1
-        #diff = abs((y_true[ix, :, :, 0] - y_pred[ix, :, :, 0]) / (y_true[ix, :, :, 0]+1))
-
-        #for iy in range(test_size):
-            #diff[iy][np.isinf(diff[iy])] = np.nan
-
-        diff[np.isinf(diff)] = np.nan
-        mape_list.append(diff)
-
-    mape = np.nanmean(np.concatenate(mape_list))
+    mape = np.nanmean(np.concatenate(absolute_percentage_error))
+    if np.isnan(mape): mape = 10
 
     return -mape
