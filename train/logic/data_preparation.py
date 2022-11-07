@@ -8,12 +8,27 @@ from tensorflow.keras.layers import Input, Embedding, TimeDistributed, GlobalAve
 from src.logic.common.functions import parenthesis_striped
 
 
+#def data_preparation(hotel_id: int, date_feature: pd.DataFrame, cancel_target: pd.DataFrame, smooth:bool=False,
+                     #diff: Optional[List[int]]=None):
+
+    #column = f"hotel_{hotel_id}_canceled"
+
+    #hotel_cancel = cancel_target[column].replace("-", np.nan).dropna().astype(int)
+
+    #date_feature = date_feature.loc[hotel_cancel.index]
+    #date_feature['canceled'] = hotel_cancel   # 原始值
+
+    #num_feature_columns = ['canceled']
+
+    #return num_feature_columns, date_feature
+
+
 def to_supervised(df: pd.DataFrame, input_range: int, prediction_time: int, numerical_features: List,
                   categorical_features: Optional[List[str]]=None, lead_time: int=0, prediction: bool=False):
 
     day_increment = 1
 
-    date_feature_numerical = df[numerical_features].drop(labels=['canceled_label'], axis=1)
+    date_feature_numerical = df[numerical_features]
     encoder_X_num = list()
 
     if categorical_features is not None:
@@ -28,7 +43,7 @@ def to_supervised(df: pd.DataFrame, input_range: int, prediction_time: int, nume
 
     if not prediction:
         y = list()
-        y_label = list()
+        #y_label = list()
 
     in_start = 0
 
@@ -48,7 +63,7 @@ def to_supervised(df: pd.DataFrame, input_range: int, prediction_time: int, nume
 
             if not prediction:
                 y.append(df.iloc[out_start: out_end]['canceled'].tolist())
-                y_label.append(df.iloc[out_start: out_end]['canceled_label'].tolist())
+                #y_label.append(df.iloc[out_start: out_end]['canceled_label'].tolist())
 
             in_start += day_increment
         else:
@@ -58,7 +73,7 @@ def to_supervised(df: pd.DataFrame, input_range: int, prediction_time: int, nume
     if not prediction:
         shape_0, shape_1 = np.array(y).shape
         y = np.array(y).reshape(shape_0, shape_1, 1)
-        y_label = np.array(y_label).reshape(shape_0, shape_1, 1)
+        #y_label = np.array(y_label).reshape(shape_0, shape_1, 1)
 
     if categorical_features is not None:
         for layer_name in decoder_X_cat.keys():
@@ -75,7 +90,7 @@ def to_supervised(df: pd.DataFrame, input_range: int, prediction_time: int, nume
 
     if not prediction:
         results['y'] = y  # 原始值
-        results['y_label'] = y_label #
+        #results['y_label'] = y_label #
 
     return results
 
@@ -89,7 +104,7 @@ def parse_tf_input(results: Dict, prediction: bool = False):
     if prediction:
         return X
     else:
-        y = {'outputs': tf.convert_to_tensor(results['y_label'], dtype=tf.float32),
+        y = {'outputs': tf.convert_to_tensor(results['y'], dtype=tf.float32),
              'true': results['y']}
         return X, y
 
