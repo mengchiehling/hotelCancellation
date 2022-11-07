@@ -106,6 +106,8 @@ def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, 
 
     for n_fold, (train_index, test_index) in enumerate(tscv.split(date_feature)):
 
+        #if n_fold == 0:
+            #continue
         #若要訓練集與測試集的日期不重疊的話就註解掉下面這行
         test_index = np.arange(test_index[0] - input_range - lead_time - prediction_time, test_index[-1] + 1)
 
