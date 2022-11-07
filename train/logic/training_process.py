@@ -39,7 +39,7 @@ def training_process_opt(input_range: int, prediction_time: int, date_feature: p
                          learning_rate, model_type: str, categorical_features: Optional[List[str]]=None,
                          loss: str='mse', encoder_filters: Optional[int]=None, encoder_lstm_units: Optional[int]=None,
                          decoder_lstm_units: Optional[int]=None, decoder_dense_units=None, recurrent_dropout=0.0,
-                         dropout=0.0):
+                         dropout=0.0, l2: float=0.0, momentum: float=0.99):
 
     # For hyperparameter optimization
 
@@ -63,7 +63,8 @@ def training_process_opt(input_range: int, prediction_time: int, date_feature: p
                                       encoder_lstm_units=encoder_lstm_units,
                                       encoder_filters=encoder_filters,
                                       decoder_lstm_units=decoder_lstm_units,
-                                      decoder_dense_units=decoder_dense_units)
+                                      decoder_dense_units=decoder_dense_units,
+                                      l2=l2, momentum=momentum)
 
     absolute_percentage_error = []
 
