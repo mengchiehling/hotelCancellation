@@ -1,13 +1,24 @@
 from typing import Optional
 
-from tensorflow.keras.layers import LSTM, TimeDistributed, Dense, RepeatVector, Dropout, Add
+from tensorflow.keras.layers import LSTM, TimeDistributed, Dense, RepeatVector, Dropout, Add, Input, Concatenate
 
 
-def LSTM_block(x, lstm_units: int, dropout: float, recurrent_dropout: float, idx: int, initial_state: Optional=None):
+def LSTM_block(x, lstm_units: int, dropout: float, recurrent_dropout: float, idx: int, initial_state: Optional=None,
+               weekly_inputs: Optional=None):
 
-    x, state_h, state_c = LSTM(lstm_units, activation='relu', return_state=True, return_sequences=True,
-                               dropout=dropout, recurrent_dropout=recurrent_dropout,
-                               name=f'decoder_LSTM_{idx}')(x, initial_state=initial_state)
+    # if weekly_inputs is not None:
+    #     x = Concatenate(axis=2)([x, weekly_inputs])
+    if weekly_inputs is not None:
+        x = weekly_inputs
+
+    if initial_state is not None:
+        x, state_h, state_c = LSTM(lstm_units, activation='relu', return_state=True, return_sequences=True,
+                                   dropout=dropout, recurrent_dropout=recurrent_dropout,
+                                   name=f'decoder_LSTM_{idx}')(x, initial_state=initial_state)
+    else:
+        x, state_h, state_c = LSTM(lstm_units, activation='relu', return_state=True, return_sequences=True,
+                                   dropout=dropout, recurrent_dropout=recurrent_dropout,
+                                   name=f'decoder_LSTM_{idx}')(x)
 
     return x, state_h, state_c
 
@@ -22,23 +33,27 @@ def LSTMRes_layer(x, lstm_units: int, dropout: float, recurrent_dropout: float, 
 
 
 def LSTM_decoder(state_h, lstm_units, dense_units, n_outputs: int,
-                 dropout: float=0, recurrent_dropout: float=0, state_c=None):
+                 dropout: float=0, recurrent_dropout: float=0, state_c=None,
+                 weekly_inputs: bool=False):
 
-    decoder_inputs = RepeatVector(n_outputs)(state_h)
+    if weekly_inputs:
+        weekly_inputs = Input(shape=(n_outputs, 1), name='weekly_inputs')
+        decoder_inputs = weekly_inputs
+    else:
+        decoder_inputs = RepeatVector(n_outputs)(state_h)
 
     idx = 0
     if state_c is None:
         y, state_h, state_c = LSTM_block(decoder_inputs, lstm_units=lstm_units, dropout=dropout,
-                                         recurrent_dropout=recurrent_dropout, idx=idx)
+                                         recurrent_dropout=recurrent_dropout, idx=idx, weekly_inputs=weekly_inputs)
     else:
         y, state_h, state_c = LSTM_block(decoder_inputs, lstm_units=lstm_units, dropout=dropout,
                                          recurrent_dropout=recurrent_dropout, idx=idx,
-                                         initial_state=[state_h, state_c])
+                                         initial_state=[state_h, state_c], weekly_inputs=weekly_inputs)
 
     idx += 1
     y, state_h, state_c = LSTM_block(y, lstm_units=lstm_units, dropout=dropout,
-                                     recurrent_dropout=recurrent_dropout, idx=idx,
-                                     initial_state=[state_h, state_c])
+                                     recurrent_dropout=recurrent_dropout, idx=idx)
 
     if dense_units:
         dense_units = int(dense_units)
@@ -48,7 +63,7 @@ def LSTM_decoder(state_h, lstm_units, dense_units, n_outputs: int,
 
     outputs = TimeDistributed(Dense(1), name='outputs')(y)
 
-    return outputs
+    return outputs, weekly_inputs
 
 # def LSTMRes_decoder(state_h, lstm_units, dense_units, decoder_cat_dict, dropout: float=0, recurrent_dropout: float=0, state_c=None):
 #

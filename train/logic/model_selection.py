@@ -1,15 +1,42 @@
 import importlib
-from typing import List
+import os
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import TimeSeriesSplit, train_test_split
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.feature_selection import SelectKBest, f_regression
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.optimizers import Adam
 
+from src.io.path_definition import get_file, _load_yaml
+from src.logic.common.functions import generate_weekly_inputs
 from train.logic.model.LSTM2LSTM_architecture import build_model
 from train.logic.data_preparation import tf_input_pipeline
+
+basic_parameters = _load_yaml(get_file(os.path.join('config', 'training_config.yml')))['basic_parameters']
+
+
+def select_features(X_train, y_train):
+    # configure to select all features
+    fs = SelectKBest(score_func=f_regression, k='all')
+    try:
+        fs.fit(X_train, y_train)
+    except ValueError:
+        print("")
+    # transform test input data
+    columns = X_train.columns
+    pvalues = fs.pvalues_
+
+    kept_columns = []
+    threshold = 0.025
+
+    for c, p in zip(columns, pvalues):
+        if p < threshold:
+            kept_columns.append(c)
+
+    return kept_columns
 
 
 def feature_normalization(df_train, df_val, features: List):
@@ -23,7 +50,8 @@ def feature_normalization(df_train, df_val, features: List):
     return df_train, df_val, scaler
 
 
-def model_training(model, X_train, y_train, X_val, y_val, batch_size, learning_rate: float, loss: str):
+def model_training(model, X_train, y_train, X_val, y_val, batch_size, learning_rate: float, loss: str,
+                   weekly_inputs: Optional[bool]=None):
 
     optimizer = Adam(learning_rate=learning_rate)
 
@@ -32,6 +60,11 @@ def model_training(model, X_train, y_train, X_val, y_val, batch_size, learning_r
     earlystopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
 
     callbacks = [earlystopping]
+
+    if weekly_inputs:
+        # use 28 days canceled to build the 7 days mean field prediction as the inputs for decoder
+        X_train = generate_weekly_inputs(X_train, y_train)
+        X_val = generate_weekly_inputs(X_val, y_train)
 
     model.fit(X_train, {'outputs': y_train['outputs']}, epochs=20, batch_size=batch_size, verbose=0,
               validation_data=(X_val, {'outputs': y_val['outputs']}), shuffle=True, callbacks=callbacks)
@@ -83,12 +116,13 @@ def model_training_pipeline(date_feature: pd.DataFrame, test_size: int, input_ra
     m = importlib.import_module(f"train.logic.model.{model_type}_architecture")
 
     model = m.build_model(n_inputs=n_inputs, n_features=n_features, dropout=dropout,
-                          recurrent_dropout=recurrent_dropout, n_outputs=n_outputs, **kwargs)
+                          recurrent_dropout=recurrent_dropout, n_outputs=n_outputs,
+                          weekly_inputs=basic_parameters['weekly_inputs'],**kwargs)
 
     # we can have customized optimizer as well
 
     model = model_training(model, X_train, y_train, X_val, y_val, batch_size=batch_size,
-                           learning_rate=learning_rate, loss=loss)
+                           learning_rate=learning_rate, loss=loss, weekly_inputs=basic_parameters['weekly_inputs'])
 
     return model, scaler
 
@@ -118,26 +152,38 @@ def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, 
 
         df_test = date_feature.iloc[test_index]
 
+        kept_columns = numerical_features.copy()
+        # numerical_features_copy = numerical_features.copy()
+        # numerical_features_copy.remove('canceled')
+
+        # kept_columns = ['canceled'] + select_features(df_train[numerical_features_copy], df_train['canceled'])
+        #
+        # df_train = df_train[['canceled'] + kept_columns]
+        # df_test = df_test[['canceled'] + kept_columns]
+
         print(f"fold {n_fold}: training: {time_begin} - {time_end}, testing: {df_test.index[0]} - {df_test.index[-1]}")
 
         model, scaler = model_training_pipeline(date_feature=df_train, test_size=test_size, input_range=input_range,
-                                                prediction_time=prediction_time, numerical_features=numerical_features,
+                                                prediction_time=prediction_time, numerical_features=kept_columns,
                                                 loss=loss, learning_rate=learning_rate, batch_size=batch_size,
                                                 model_type=model_type, dropout=dropout,
                                                 recurrent_dropout=recurrent_dropout, **kwargs)
 
-        df_test.loc[:, numerical_features] = scaler.transform(df_test[numerical_features])
+        df_test.loc[:, kept_columns] = scaler.transform(df_test[kept_columns])
 
         X_test, y_test = tf_input_pipeline(df_test, input_range=input_range, prediction_time=prediction_time,
-                                           numerical_features=numerical_features)
+                                           numerical_features=kept_columns
+                                           )
         y_true_extend = np.repeat(y_test['true'].reshape(-1, 1), len(scaler.scale_), axis=1)
         y_true_reshape = scaler.inverse_transform(y_true_extend)[:, 0].reshape(y_test['true'].shape)
         y_true.append(y_true_reshape)
 
+        X_test = generate_weekly_inputs(X_test, y_test)
+
         pred = model.predict(X_test)
 
         y_pred_extend = np.repeat(pred.reshape(-1, 1), len(scaler.scale_), axis=1)
-        y_pred_reshape = scaler.inverse_transform(y_pred_extend)[:, 0].reshape(pred.shape)
+        y_pred_reshape = np.round(scaler.inverse_transform(y_pred_extend)[:, 0].reshape(pred.shape))
         y_pred.append(y_pred_reshape)
 
     return np.array(y_true), np.array(y_pred)

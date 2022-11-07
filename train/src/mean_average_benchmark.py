@@ -58,6 +58,7 @@ if __name__ == "__main__" :
     max_train_size = basic_parameters['max_train_size']
 
     # 做training或evaluation都要讀取數據
+
     numerical_features, date_feature = data_preparation(hotel_id, date_feature, cancel_target)
     date_feature = date_feature[numerical_features]
 
@@ -86,6 +87,12 @@ if __name__ == "__main__" :
 
     y_pred = np.array(y_pred)
     y_true = np.array(y_true)
-    adapted_mape = mean_absolute_percentage_error(y_true.flatten() + 1, y_pred.flatten() + 1)
 
-    print(adapted_mape)
+    diff = abs((y_pred - y_true) / y_true)
+
+    diff[np.isinf(diff)] = np.nan
+
+    # adapted_mape = mean_absolute_percentage_error(y_true.flatten() + 1, y_pred.flatten() + 1)
+    adapted_mape = np.nanmean(diff)
+
+    print(f"{hotel_id}: {np.round(adapted_mape, 2)}")
