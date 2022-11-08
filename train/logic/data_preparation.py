@@ -123,7 +123,7 @@ def generate_categorical_embeddings(section: str, cat_dict: Optional[Dict]=None)
 
             inputs_layers.append(cat_input)
 
-            input_dim = len(np.unique(value))
+            input_dim = len(np.unique(value)) + 1  # +1 for unseen category: https://stackoverflow.com/questions/61527381/unseen-category-in-validation-set-gives-error-when-using-keras
             y_embedding = Embedding(input_dim, 1)(cat_input)
             y_embedding = TimeDistributed(GlobalAveragePooling1D(), name=f"{parenthesis_striped(key)}_{section}_embed")(
                 y_embedding)
