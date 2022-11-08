@@ -39,13 +39,13 @@ def data_preparation(hotel_id: int, date_feature: pd.DataFrame, cancel_target: p
     twn_covid_data['date'] = twn_covid_data['date'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d').strftime("%Y/%m/%d"))
     twn_covid_data.set_index('date', inplace=True)
 
-    covid_features_num = [] #['new_cases', 'new_deaths']
+    covid_features_num = ['reproduction_rate'] #['new_cases', 'new_deaths']
 
 
     date_feature = date_feature.join(twn_covid_data[covid_features_num].fillna(0))
 
-    #num_feature_columns = ['canceled'] + covid_features_num
-    num_feature_columns = ['canceled','days2vecation','vecation_days','Precp','PrecpHour','SunShine','Temperature'] + covid_features_num
+    num_feature_columns = ['canceled'] + covid_features_num
+    #num_feature_columns = ['canceled','days2vecation','vecation_days','Precp','PrecpHour','SunShine','Temperature'] + covid_features_num
 
     return num_feature_columns, date_feature
 
