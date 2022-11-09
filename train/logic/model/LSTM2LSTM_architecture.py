@@ -45,7 +45,7 @@ def build_model(n_inputs, n_features, n_outputs: int,
                                                  weekly_inputs=weekly_inputs)
 
     if weekly_inputs:
-        encoder_inputs_layers.append(decoder_input_layers)
+        encoder_inputs_layers += decoder_input_layers
 
     model = Model(inputs=encoder_inputs_layers, outputs=outputs)
 

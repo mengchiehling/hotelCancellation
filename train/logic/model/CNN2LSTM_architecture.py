@@ -9,7 +9,11 @@ CNN2LSTM parameters:
     Optional:
         decoder_dense_units
 '''
+import os
+import random
 
+import numpy as np
+import tensorflow as tf
 from tensorflow.keras.models import Model
 
 from train.logic.model.encoder import CNN_encoder
@@ -17,7 +21,13 @@ from train.logic.model.decoder import LSTM_decoder
 
 
 def build_model(n_inputs, n_features, n_outputs: int,
-                dropout: float=0, recurrent_dropout: float=0, **kwargs):
+                dropout: float=0, recurrent_dropout: float=0,
+                weekly_inputs: bool=False, **kwargs):
+
+    tf.random.set_seed(42)
+    os.environ['PYTHONHASHSEED'] = '42'
+    random.seed(42)
+    np.random.seed(42)
 
     encoder_filters = kwargs.get('encoder_filters')
     decoder_dense_units = kwargs.get('decoder_dense_units')
@@ -27,9 +37,13 @@ def build_model(n_inputs, n_features, n_outputs: int,
     encoder_inputs_layers, embedding = CNN_encoder(n_inputs, n_features, filters=encoder_filters, dropout=dropout,
                                                    l2=l2, momentum=momentum)
 
-    outputs = LSTM_decoder(state_h=embedding, dense_units=decoder_dense_units,
-                           n_outputs=n_outputs, lstm_units=encoder_filters,
-                           dropout=dropout, recurrent_dropout=recurrent_dropout)
+    outputs,  decoder_input_layers = LSTM_decoder(state_h=embedding, dense_units=decoder_dense_units,
+                                                  n_outputs=n_outputs, lstm_units=encoder_filters,
+                                                  dropout=dropout, recurrent_dropout=recurrent_dropout,
+                                                  weekly_inputs=weekly_inputs)
+
+    if weekly_inputs:
+        encoder_inputs_layers += decoder_input_layers
 
     model = Model(inputs=encoder_inputs_layers, outputs=outputs)
 

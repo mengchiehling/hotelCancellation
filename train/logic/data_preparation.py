@@ -30,6 +30,7 @@ def to_supervised(df: pd.DataFrame, input_range: int, prediction_time: int, nume
 
     date_feature_numerical = df[numerical_features]
     encoder_X_num = list()
+    decoder_X_num = list()
 
     if not prediction:
         y = list()
@@ -44,6 +45,7 @@ def to_supervised(df: pd.DataFrame, input_range: int, prediction_time: int, nume
         if out_end < len(date_feature_numerical):
 
             encoder_X_num.append(date_feature_numerical.iloc[in_start: in_end].values)
+            decoder_X_num.append(date_feature_numerical['booking'].iloc[out_start: out_end].values)
 
             if not prediction:
                 y.append(df.iloc[out_start: out_end]['canceled'].tolist())
@@ -57,7 +59,8 @@ def to_supervised(df: pd.DataFrame, input_range: int, prediction_time: int, nume
         shape_0, shape_1 = np.array(y).shape
         y = np.array(y).reshape(shape_0, shape_1, 1)
 
-    results = {'encoder_X_num': np.array(encoder_X_num)}
+    results = {'encoder_X_num': np.array(encoder_X_num),
+               'decoder_X_num': np.array(decoder_X_num)}
 
     if not prediction:
         results['y'] = y  # 原始值
@@ -67,7 +70,8 @@ def to_supervised(df: pd.DataFrame, input_range: int, prediction_time: int, nume
 
 def parse_tf_input(results: Dict, prediction: bool = False):
 
-    X = {'encoder_X_num': results['encoder_X_num']}
+    X = {'encoder_X_num': results['encoder_X_num'],
+         'decoder_X_num': results['decoder_X_num']}
 
     if prediction:
         return X
