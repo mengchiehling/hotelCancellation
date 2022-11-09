@@ -108,7 +108,7 @@ if __name__ == "__main__":
     #diff = args.diff
     #smooth=args.smooth
 
-    n_splits = 5
+    n_splits = 7
     test_size = 28
 
     categorical_features = ['vecation', 'weekdate','season','midd','sallery', 'is_rest_day','s_vecation', 'w_vecation','workingday','is_event','cov_policy']#['vecation', 'weekdate','season','midd','sallery', 'is_rest_day','s_vecation', 'w_vecation','workingday','is_event','cov_policy']
@@ -143,7 +143,7 @@ if __name__ == "__main__":
                                       numerical_features=numerical_features, categorical_features=categorical_features,
                                       n_splits=n_splits, input_range=input_range,
                                       test_size=test_size, loss='mse', model_type=model_type,
-                                      max_train_size=365)
+                                      max_train_size=180)
 
     optimization_process(training_process_opt_fn, pbounds, model_type=model_type, hotel_id=hotel_id)
 
