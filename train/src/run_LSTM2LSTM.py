@@ -39,7 +39,7 @@ def data_preparation(hotel_id: int, date_feature: pd.DataFrame, cancel_target: p
     twn_covid_data['date'] = twn_covid_data['date'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d').strftime("%Y/%m/%d"))
     twn_covid_data.set_index('date', inplace=True)
 
-    covid_features_num = ['reproduction_rate','total_deaths_per_million'] #['new_cases', 'new_deaths']
+    covid_features_num = ['reproduction_rate'] #['new_cases', 'new_deaths']
 
 
     date_feature = date_feature.join(twn_covid_data[covid_features_num].fillna(0))
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     training_process_opt_fn = partial(training_process_opt, prediction_time=prediction_time, date_feature=date_feature,
                                       numerical_features=numerical_features, n_splits=n_splits,
                                       input_range=input_range, test_size=test_size, loss='mse', model_type=model_type,
-                                      max_train_size=365)
+                                      max_train_size=180)
 
 
     optimization_process(training_process_opt_fn, pbounds, model_type=model_type, hotel_id=hotel_id)
