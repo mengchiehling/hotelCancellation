@@ -73,8 +73,8 @@ def training_process_opt(input_range: int, prediction_time: int, date_feature: p
         # dimension: n_splits, test_size, time, dense_units
         # ptimized to first day
 
-        diff = abs((y_true[ix, :, 0, 0] - y_pred[ix, :, 0, 0]) / y_true[ix, :, 0, 0])
-        # diff = abs((y_true[ix, :, 0, 0] - y_pred[ix, :, 0, 0]) / (y_true[ix, :, 0, 0]+1))
+        # diff = abs((y_true[ix, :, 0, 0] - y_pred[ix, :, 0, 0]) / y_true[ix, :, 0, 0])
+        diff = abs((y_true[ix, :, 0, 0] - y_pred[ix, :, 0, 0]) / (y_true[ix, :, 0, 0]+1))
         absolute_percentage_error.append(diff)
 
     absolute_percentage_error = np.array(absolute_percentage_error)
