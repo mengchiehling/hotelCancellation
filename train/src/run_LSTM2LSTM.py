@@ -61,13 +61,13 @@ def data_preparation(hotel_id: int, date_feature: pd.DataFrame, cancel_target: p
         lambda x: datetime.strptime(x, '%Y-%m-%d').strftime("%Y/%m/%d"))
     twn_covid_data.set_index('date', inplace=True)
 
-    covid_features_num = ['reproduction_rate']  # ['new_cases', 'new_deaths']
+    covid_features_num = []  # ['new_cases', 'new_deaths']
     covid_features_cat = []
 
     date_feature = date_feature.join(twn_covid_data[covid_features_num+covid_features_cat].fillna(0))
 
-    num_feature_columns = ['canceled'] + covid_features_num
-    #num_feature_columns = ['canceled','days2vecation','vecation_days','Precp','PrecpHour','SunShine','Temperature'] + covid_features_num
+    #num_feature_columns = ['canceled'] + covid_features_num
+    num_feature_columns = ['canceled','days2vecation','vecation_days','Precp','PrecpHour','SunShine','Temperature'] + covid_features_num
 
     #if smooth:
         # Smoothed features for input
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     n_splits = 5
     test_size = 28
 
-    categorical_features =  []#['vecation', 'weekdate','season','midd','sallery', 'is_rest_day','s_vecation', 'w_vecation','workingday','is_event','cov_policy']
+    categorical_features = []#['vecation', 'weekdate','season','midd','sallery', 'is_rest_day','s_vecation', 'w_vecation','workingday','is_event','cov_policy']
 
     numerical_features, covid_features_cat, date_feature = data_preparation(hotel_id, date_feature, cancel_target
                                                         # , smooth=smooth, diff=diff
