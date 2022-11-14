@@ -78,7 +78,9 @@ def training_process_opt(input_range: int, prediction_time: int, date_feature: p
 
     absolute_percentage_error = []
 
-    for ix in range(n_splits):
+    #n, _, _ = y_true.shape 跑一折
+
+    for ix in range(n_splits):  #裡面換成n
         #dimension: n_splits, test_size, time, dense_units
         #ptimized to first day
 
