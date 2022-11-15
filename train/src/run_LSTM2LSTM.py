@@ -9,11 +9,7 @@ from src.io.load_data import data_preparation
 from train.logic.training_process import training_process_opt
 from train.logic.optimization_process import optimization_process
 
-hotel_info = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_hotel_info.csv')))
-
 cancel_target = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_target.csv')))
-
-hotel_meta = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_hotel_info.csv')), index_col=0)
 
 
 if __name__ == "__main__":
@@ -31,7 +27,7 @@ if __name__ == "__main__":
     hotel_id = args.hotel_id
     model_type = 'LSTM2LSTM'
 
-    date_feature = pd.read_csv(get_file(os.path.join('data', f'{hotel_id}.csv')))
+    booking_feature = pd.read_csv(get_file(os.path.join('data', f'{hotel_id}.csv')))
 
     basic_parameters = _load_yaml(get_file(os.path.join('config', 'training_config.yml')))['basic_parameters']
 
@@ -41,7 +37,7 @@ if __name__ == "__main__":
 
     categorical_features = []
 
-    numerical_features, date_feature = data_preparation(hotel_id, date_feature, cancel_target)
+    numerical_features, date_feature = data_preparation(hotel_id, booking_feature, cancel_target)
 
     date_feature = date_feature[numerical_features]
 

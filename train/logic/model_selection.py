@@ -153,13 +153,6 @@ def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, 
         df_test = date_feature.iloc[test_index]
 
         kept_columns = numerical_features.copy()
-        # numerical_features_copy = numerical_features.copy()
-        # numerical_features_copy.remove('canceled')
-
-        # kept_columns = ['canceled'] + select_features(df_train[numerical_features_copy], df_train['canceled'])
-        #
-        # df_train = df_train[['canceled'] + kept_columns]
-        # df_test = df_test[['canceled'] + kept_columns]
 
         print(f"fold {n_fold}: training: {time_begin} - {time_end}, testing: {df_test.index[0]} - {df_test.index[-1]}")
 
