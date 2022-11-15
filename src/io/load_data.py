@@ -12,7 +12,7 @@ from src.io.path_definition import get_file
 #                            )
 
 
-def data_preparation(hotel_id: int, date_feature: pd.DataFrame, cancel_target: pd.DataFrame):
+def data_preparation(hotel_id: int, booking_feature: pd.DataFrame, cancel_target: pd.DataFrame):
 
     column = f"hotel_{hotel_id}_canceled"
 
@@ -20,24 +20,22 @@ def data_preparation(hotel_id: int, date_feature: pd.DataFrame, cancel_target: p
     cancel_target.set_index('date', inplace=True)
     hotel_cancel = cancel_target[column].replace("-", np.nan).dropna().astype(int)
 
-    date_feature['date'] = date_feature['date'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d').strftime("%Y/%m/%d"))
-    date_feature.set_index('date', inplace=True)
+    booking_feature['date'] = booking_feature['date'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d').strftime("%Y/%m/%d"))
+    booking_feature.set_index('date', inplace=True)
     # date_feature = date_feature.loc[hotel_cancel.index]
-    date_feature = date_feature.join(hotel_cancel)
-    date_feature.dropna(inplace=True)
+    booking_feature = booking_feature.join(hotel_cancel)
 
-    date_feature['canceled'] = hotel_cancel   # 原始值
+    date_feature = pd.read_csv(get_file(os.path.join('data', f'cancel_dataset_date_feature.csv')))
+    date_feature['date'] = date_feature['date'].apply(lambda x: datetime.strptime(x, '%Y/%m/%d').strftime("%Y/%m/%d"))
+    date_feature.set_index('date', inplace=True)
+    booking_feature = booking_feature.join(date_feature[['Precp', 'PrecpHour', 'SunShine', 'Temperature']])
 
-    # twn_covid_data = covid_data[covid_data['iso_code']=='TWN']
-    # twn_covid_data['date'] = twn_covid_data['date'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d').strftime("%Y/%m/%d"))
-    # twn_covid_data.set_index('date', inplace=True)
-    #
-    # covid_features_num = ['new_cases', 'new_deaths']
-    #
-    # date_feature = date_feature.join(twn_covid_data[covid_features_num].fillna(0))
+    booking_feature.dropna(inplace=True)
+    booking_feature['canceled'] = hotel_cancel   # 原始值
 
     covid_features_num = []
 
-    num_feature_columns = ['canceled', 'booking'] + covid_features_num
+    num_feature_columns = ['canceled', 'booking', 'days2vecation', 'vecation_days', 'Precp',
+                           'PrecpHour','SunShine','Temperature'] + covid_features_num
 
-    return num_feature_columns, date_feature
+    return num_feature_columns, booking_feature
