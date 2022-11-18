@@ -7,10 +7,6 @@ import pandas as pd
 from src.io.path_definition import get_file
 
 
-# covid_data = pd.read_excel(get_file(os.path.join('data', 'owid-covid-data.xlsx')),
-#                            #engine='openpyxl'
-#                            )
-
 
 def data_preparation(hotel_id: int, booking_feature: pd.DataFrame, cancel_target: pd.DataFrame):
 
