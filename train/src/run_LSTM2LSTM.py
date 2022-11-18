@@ -11,6 +11,9 @@ from train.logic.optimization_process import optimization_process
 
 cancel_target = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_target.csv')))
 
+covid_data = pd.read_excel(get_file(os.path.join('data', 'owid-covid-data.xlsx')),
+                           #engine='openpyxl'
+                           )
 
 if __name__ == "__main__":
 
