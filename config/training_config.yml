@@ -1,0 +1,47 @@
+bayesianOptimization:
+  init_points: 8
+  n_iter: 24
+  acq: 'ucb'
+
+lstm2lstm_pbounds:
+  batch_size: (24, 48)
+  learning_rate: (0.0001, 0.01)
+  encoder_lstm_units: (32, 512)
+  dropout: (0.1, 0.4)
+  recurrent_dropout: (0.1, 0.4)
+  decoder_dense_units: (8, 32)
+  l2: (0, 0.1)
+
+cnn2lstm_pbounds:
+  batch_size: (24, 48)
+  learning_rate: (0.0001, 0.01)
+  encoder_filters: (32, 512)
+  dropout: (0.1, 0.4)
+  recurrent_dropout: (0.1, 0.4)
+  decoder_dense_units: (8, 32)
+  l2: (0, 0.1)
+  momentum: (0.9, 0.999)
+
+basic_parameters:
+  n_splits: 5
+  test_size: 28
+  input_range: 28
+  prediction_time: 7
+  max_train_size: 180
+  weekly_inputs: yes
+
+features_configuration:
+  A: ['canceled']
+  B: ['canceled', 'new cases', 'new deaths']
+  C: ['canceled', 'new cases', 'new deaths', 'days2vecation', 'vecation days', 'Precp', 'PrecpHour', 'SunShine', 'Temperature']
+  D: ['canceled', 'days2vecation', 'vecation days', 'Precp', 'PrecpHour', 'SunShine', 'Temperature']
+  E: ['canceled', 'reproduction_rate']
+  F: ['canceled', 'vecation', 'weekdate', 'season', 'midd', 'sallery', 'is_rest_day', 's_vecation', 'w_vecation', 'workingday', 'is_event', 'cov_policy']
+  X: ['canceled', 'booking']
+  Y: ['canceled', 'booking', 'days2vecation', 'vecation days', 'Precp', 'PrecpHour', 'SunShine', 'Temperature']
+
+features_configuration_a:
+  A:
+    numerical: ['canceled']
+    categorical: []
+  B:

@@ -42,7 +42,7 @@ def to_supervised(df: pd.DataFrame, input_range: int, prediction_time: int, nume
         in_end = in_start + input_range
         out_start = in_end + lead_time
         out_end = out_start + prediction_time
-        if out_end < len(date_feature_numerical):
+        if out_end <= len(date_feature_numerical):
 
             encoder_X_num.append(date_feature_numerical.iloc[in_start: in_end].values)
             decoder_X_num.append(date_feature_numerical['booking'].iloc[out_start: out_end].values)

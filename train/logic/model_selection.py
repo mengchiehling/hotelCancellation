@@ -120,7 +120,7 @@ def model_training_pipeline(date_feature: pd.DataFrame, test_size: int, input_ra
                           weekly_inputs=basic_parameters['weekly_inputs'],**kwargs)
 
     # we can have customized optimizer as well
-
+    batch_size = int(np.round(batch_size, 0))
     model = model_training(model, X_train, y_train, X_val, y_val, batch_size=batch_size,
                            learning_rate=learning_rate, loss=loss, weekly_inputs=basic_parameters['weekly_inputs'])
 

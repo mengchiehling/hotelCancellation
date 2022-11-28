@@ -1,10 +1,7 @@
-import os
-import random
-from typing import Optional, List
+from typing import Optional
 
 import numpy as np
 import pandas as pd
-import tensorflow as tf
 
 from train.logic.model_selection import cross_validation
 
@@ -13,11 +10,6 @@ def training_process(input_range: int, prediction_time: int, date_feature: pd.Da
                      numerical_features, n_splits: int, max_train_size: int, test_size, batch_size: int,
                      learning_rate: float, model_type: str, loss: str='mse', dropout: float=0,
                      recurrent_dropout: float=0, **kwargs):
-
-    # tf.random.set_seed(42)
-    # os.environ['PYTHONHASHSEED']='42'
-    # random.seed(42)
-    # np.random.seed(42)
 
     date_feature_copy = date_feature.copy()
 
@@ -40,16 +32,16 @@ def training_process_opt(input_range: int, prediction_time: int, date_feature: p
 
     # For hyperparameter optimization
 
-    max_train_size = int(max_train_size)
-    batch_size = int(batch_size)
+    max_train_size = int(np.round(max_train_size, 0))
+    batch_size = int(np.round(batch_size, 0))
     if encoder_lstm_units:
-        encoder_lstm_units = int(encoder_lstm_units)
+        encoder_lstm_units = int(np.round(encoder_lstm_units, 0))
     if encoder_filters:
-        encoder_filters = int(encoder_filters)
+        encoder_filters = int(np.round(encoder_filters, 0))
     if decoder_lstm_units:
-        decoder_lstm_units=int(decoder_lstm_units)
+        decoder_lstm_units=int(np.round(decoder_lstm_units, 0))
     if decoder_dense_units:
-        decoder_dense_units=int(decoder_dense_units)
+        decoder_dense_units=int(np.round(decoder_dense_units, 0))
 
     y_true, y_pred = training_process(input_range=input_range, prediction_time=prediction_time,
                                       date_feature=date_feature, numerical_features=numerical_features,
