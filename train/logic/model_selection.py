@@ -116,6 +116,7 @@ def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, 
     y_true = []
 
     for n_fold, (train_index, test_index) in enumerate(tscv.split(date_feature)):
+
         test_index = np.arange(test_index[0] - input_range - lead_time - prediction_time, test_index[-1] + 1)
 
         df_train = date_feature.iloc[train_index]

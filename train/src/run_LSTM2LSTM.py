@@ -135,8 +135,8 @@ if __name__ == "__main__":
                'encoder_lstm_units': (32, 512),
                'dropout': (0.1, 0.4),
                'recurrent_dropout': (0.1, 0.4),
-               'decoder_dense_units': (8, 32),
-               'l2': (0, 0.1)}
+               'decoder_dense_units': (8, 32)}
+               #'l2': (0, 0.1)}
 
 
     training_process_opt_fn = partial(training_process_opt, prediction_time=prediction_time, date_feature=date_feature,
