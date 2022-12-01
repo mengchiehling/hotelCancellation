@@ -1,5 +1,6 @@
 import sys
 import os
+import yaml
 
 
 def get_project_dir() -> str:
@@ -29,3 +30,11 @@ def get_file(relative_path: str) -> str:
     """
 
     return os.path.join(get_project_dir(), relative_path)
+
+
+def _load_yaml(file):
+
+    with open(file, 'r') as f:
+        loaded_yaml = yaml.full_load(f)
+    return loaded_yaml
+

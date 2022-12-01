@@ -10,13 +10,12 @@ def retrieve_hyperparameter_files(search_pattern: str):
     '''
     search_pattern = "LDA_logs_[\d]{8}-[\d]{2}.json"
     "CNN2LSTM_logs_[\d]{8}-[\d]{2}.json"
-
     :param search_pattern:
     :return:
     '''
 
 
-    dir_ = os.path.join(get_project_dir(), 'data', 'optimization')
+    dir_ = os.path.join(get_project_dir(), 'data', 'optimization', 'without_category')
 
 
     res = [f for f in os.listdir(dir_) if re.search(search_pattern, f)]
@@ -29,8 +28,6 @@ def retrieve_hyperparameter_files(search_pattern: str):
     files = [f[0] for f in files_with_time]
 
     return files
-
-
 
 
 def optimized_parameters(search_pattern: str):
