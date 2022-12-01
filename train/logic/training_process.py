@@ -39,20 +39,20 @@ def training_process_opt(input_range: int, prediction_time: int, date_feature: p
                          learning_rate, model_type: str, categorical_features: Optional[List[str]]=None,
                          loss: str='mse', encoder_filters: Optional[int]=None, encoder_lstm_units: Optional[int]=None,
                          decoder_lstm_units: Optional[int]=None, decoder_dense_units=None, recurrent_dropout=0.0,
-                         dropout=0.0, l2: float=0.0, momentum: float=0.99):
+                         dropout=0.0, momentum: float=0.99):
 
     # For hyperparameter optimization
 
-    max_train_size = int(max_train_size)
-    batch_size = int(batch_size)
+    max_train_size = int(np.round(max_train_size,0))
+    batch_size = int(np.round(batch_size,0))
     if encoder_lstm_units:
-        encoder_lstm_units = int(encoder_lstm_units)
+        encoder_lstm_units = int(np.round(encoder_lstm_units,0))
     if encoder_filters:
-        encoder_filters = int(encoder_filters)
+        encoder_filters = int(np.round(encoder_filters,0))
     if decoder_lstm_units:
-        decoder_lstm_units=int(decoder_lstm_units)
+        decoder_lstm_units = int(np.round(decoder_lstm_units,0))
     if decoder_dense_units:
-        decoder_dense_units=int(decoder_dense_units)
+        decoder_dense_units = int(np.round(decoder_dense_units,0))
 
     y_true, y_pred = training_process(input_range=input_range, prediction_time=prediction_time,
                                       date_feature=date_feature, numerical_features=numerical_features,
@@ -64,7 +64,7 @@ def training_process_opt(input_range: int, prediction_time: int, date_feature: p
                                       encoder_filters=encoder_filters,
                                       decoder_lstm_units=decoder_lstm_units,
                                       decoder_dense_units=decoder_dense_units,
-                                      l2=l2, momentum=momentum)
+                                      momentum=momentum)
 
     absolute_percentage_error = []
 

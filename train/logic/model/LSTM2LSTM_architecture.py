@@ -22,7 +22,8 @@ from train.logic.model.decoder import LSTM_decoder
 
 
 def build_model(n_inputs, n_features, encoder_cat_dict: Dict, decoder_cat_dict: Dict, n_outputs: int,
-                dropout: float=0, recurrent_dropout: float=0, **kwargs):
+                dropout: float=0, recurrent_dropout: float=0,
+                weekly_inputs: bool=False , **kwargs):
 
 
     tf.random.set_seed(42)
@@ -31,9 +32,8 @@ def build_model(n_inputs, n_features, encoder_cat_dict: Dict, decoder_cat_dict: 
     np.random.seed(42)
 
 
-    encoder_lstm_units = kwargs.get('encoder_lstm_units')
-
-    decoder_dense_units = kwargs.get('decoder_dense_units')
+    encoder_lstm_units = int(kwargs.get('encoder_lstm_units'))
+    decoder_dense_units = int(kwargs.get('decoder_dense_units'))
 
     encoder_inputs_layers, _, state_h, state_c = LSTM_encoder(n_inputs, n_features, lstm_units=encoder_lstm_units,
                                                               recurrent_dropout=recurrent_dropout,
@@ -42,10 +42,12 @@ def build_model(n_inputs, n_features, encoder_cat_dict: Dict, decoder_cat_dict: 
     decoder_inputs_layers, outputs = LSTM_decoder(state_h, dense_units=decoder_dense_units,
                                                   lstm_units=encoder_lstm_units, decoder_cat_dict=decoder_cat_dict,
                                                   dropout=dropout, recurrent_dropout=recurrent_dropout,state_c=state_c,
-                                                  n_outputs=n_outputs)
+                                                  n_outputs=n_outputs,weekly_inputs=weekly_inputs)
 
+    if weekly_inputs:
+        encoder_inputs_layers += decoder_inputs_layers
 
-    model = Model(inputs=encoder_inputs_layers + decoder_inputs_layers, outputs=outputs)
+    model = Model(inputs=encoder_inputs_layers, outputs=outputs)
 
     return model
 

@@ -24,13 +24,26 @@ def LSTMRes_layer(x, lstm_units: int, dropout: float, recurrent_dropout: float, 
     return x
 
 
-def LSTM_decoder(state_h, lstm_units, dense_units, n_outputs: int,
-                 decoder_cat_dict, dropout: float=0, recurrent_dropout: float=0, state_c=None):
+def LSTM_decoder(state_h, lstm_units, dense_units, n_outputs: int, decoder_cat_dict,
+                 dropout: float=0, recurrent_dropout: float=0, state_c=None,
+                weekly_inputs: bool=False):
+
+    if weekly_inputs:
+        previous_weekly_average_cancelled_inputs = Input(shape=(n_outputs, 1), name='previous_weekly_average_cancelled_inputs')
+        # previous_weekly_average_booking_inputs = Input(shape=(n_outputs, 1), name='previous_weekly_average_booking_inputs')
+        future_booking_inputs = Input(shape=(n_outputs, 1), name='future_booking_inputs')
+        decoder_inputs = Concatenate(axis=2)([previous_weekly_average_cancelled_inputs,
+                                              # previous_weekly_average_booking_inputs,
+                                              future_booking_inputs])
+    else:
+        decoder_inputs = RepeatVector(n_outputs)(state_h)
+        previous_weekly_average_cancelled_inputs = None
+        previous_weekly_average_booking_inputs = None
+        future_booking_inputs = None
+
 
     inputs_layers, categorical_inputs = generate_categorical_embeddings(section='decoder', cat_dict=decoder_cat_dict)
-
     categorical_inputs.append(RepeatVector(n_outputs)(state_h))
-
     decoder_inputs = Concatenate(axis=2)(categorical_inputs)
 
     idx = 0
@@ -45,7 +58,7 @@ def LSTM_decoder(state_h, lstm_units, dense_units, n_outputs: int,
     idx += 1
     y, state_h, state_c = LSTM_block(y, lstm_units=lstm_units, dropout=dropout,
                                      recurrent_dropout=recurrent_dropout, idx=idx,
-                                     initial_state=[state_h, state_c])
+                                     initial_state=[state_h,state_c])
 
     if dense_units:
         dense_units = int(dense_units)
@@ -55,7 +68,45 @@ def LSTM_decoder(state_h, lstm_units, dense_units, n_outputs: int,
 
     outputs = TimeDistributed(Dense(1), name='outputs')(y)
 
-    return inputs_layers, outputs
+    return outputs, [previous_weekly_average_cancelled_inputs,
+                     # previous_weekly_average_booking_inputs,
+                     future_booking_inputs]
+
+
+# def LSTM_decoder(state_h, lstm_units, dense_units, n_outputs: int,
+#                  decoder_cat_dict, dropout: float=0, recurrent_dropout: float=0, state_c=None):
+#
+#     inputs_layers, categorical_inputs = generate_categorical_embeddings(section='decoder', cat_dict=decoder_cat_dict)
+#
+#     categorical_inputs.append(RepeatVector(n_outputs)(state_h))
+#
+#     decoder_inputs = Concatenate(axis=2)(categorical_inputs)
+#
+#     idx = 0
+#     if state_c is None:
+#         y, state_h, state_c = LSTM_block(decoder_inputs, lstm_units=lstm_units, dropout=dropout,
+#                                          recurrent_dropout=recurrent_dropout, idx=idx)
+#     else:
+#         y, state_h, state_c = LSTM_block(decoder_inputs, lstm_units=lstm_units, dropout=dropout,
+#                                          recurrent_dropout=recurrent_dropout, idx=idx,
+#                                          initial_state=[state_h, state_c])
+#
+#     idx += 1
+#     y, state_h, state_c = LSTM_block(y, lstm_units=lstm_units, dropout=dropout,
+#                                      recurrent_dropout=recurrent_dropout, idx=idx,
+#                                      initial_state=[state_h, state_c])
+#
+#     if dense_units:
+#         dense_units = int(dense_units)
+#         y = TimeDistributed(Dense(units=dense_units, activation='relu', name='decoder_dense_layer'))(y)
+#         if dropout > 0:
+#             y = TimeDistributed(Dropout(dropout))(y)
+#
+#     outputs = TimeDistributed(Dense(1), name='outputs')(y)
+#
+#     return inputs_layers, outputs
+
+
 
 # def LSTMRes_decoder(state_h, lstm_units, dense_units, decoder_cat_dict, dropout: float=0, recurrent_dropout: float=0, state_c=None):
 #
