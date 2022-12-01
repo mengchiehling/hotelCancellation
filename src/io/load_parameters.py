@@ -51,4 +51,4 @@ def optimized_parameters(search_pattern: str):
                     target_max = target
                     params = data['params']
 
-    return params, target
+    return params, target_max
