@@ -1,10 +1,11 @@
 from typing import Optional
-
+import os
 from tensorflow.keras.layers import Input, LSTM, Concatenate, TimeDistributed, GlobalAveragePooling1D, Embedding, \
     Dense, RepeatVector, Dropout, Add
 
+from train.src import config
 from train.logic.data_preparation import generate_categorical_embeddings
-
+from src.io.path_definition import get_file, _load_yaml
 
 def LSTM_block(x, lstm_units: int, dropout: float, recurrent_dropout: float, idx: int, initial_state: Optional=None):
 
@@ -28,23 +29,49 @@ def LSTM_decoder(state_h, lstm_units, dense_units, n_outputs: int, decoder_cat_d
                  dropout: float=0, recurrent_dropout: float=0, state_c=None,
                 weekly_inputs: bool=False):
 
-    if weekly_inputs:
-        previous_weekly_average_cancelled_inputs = Input(shape=(n_outputs, 1), name='previous_weekly_average_cancelled_inputs')
-        # previous_weekly_average_booking_inputs = Input(shape=(n_outputs, 1), name='previous_weekly_average_booking_inputs')
-        future_booking_inputs = Input(shape=(n_outputs, 1), name='future_booking_inputs')
-        decoder_inputs = Concatenate(axis=2)([previous_weekly_average_cancelled_inputs,
-                                              # previous_weekly_average_booking_inputs,
-                                              future_booking_inputs])
-    else:
-        decoder_inputs = RepeatVector(n_outputs)(state_h)
-        previous_weekly_average_cancelled_inputs = None
-        previous_weekly_average_booking_inputs = None
-        future_booking_inputs = None
+    model_metadata = _load_yaml(get_file(os.path.join('config', 'training_config.yml')))
+    #basic_parameters = model_metadata['basic_parameters']
+    numerical_features = model_metadata['features_configuration'][config.configuration]['numerical']
 
+    decoder_input_layers = {}
 
     inputs_layers, categorical_inputs = generate_categorical_embeddings(section='decoder', cat_dict=decoder_cat_dict)
-    categorical_inputs.append(RepeatVector(n_outputs)(state_h))
-    decoder_inputs = Concatenate(axis=2)(categorical_inputs)
+    if inputs_layers != 0:
+        decoder_input_layers['categorical_inputs'] = inputs_layers
+    if weekly_inputs:
+        previous_weekly_average_cancelled_inputs = Input(shape=(n_outputs, 1), name='previous_weekly_average_cancelled_inputs')
+        decoder_input_layers['weekly_inputs'] = previous_weekly_average_cancelled_inputs
+        # previous_weekly_average_booking_inputs = Input(shape=(n_outputs, 1), name='previous_weekly_average_booking_inputs')
+        if 'booking' in numerical_features:
+            future_booking_inputs = Input(shape=(n_outputs, 1), name='future_booking_inputs')
+            decoder_input_layers['booking'] = future_booking_inputs
+            decoder_inputs = Concatenate(axis=2)([previous_weekly_average_cancelled_inputs,
+                                              # previous_weekly_average_booking_inputs,
+                                              future_booking_inputs,categorical_inputs])
+        else:
+            decoder_inputs = Concatenate(axis=2)([previous_weekly_average_cancelled_inputs,
+                                                  # previous_weekly_average_booking_inputs,
+                                                  categorical_inputs])
+    else:
+        if 'booking' in numerical_features:
+        #decoder_inputs = RepeatVector(n_outputs)(state_h)
+        #previous_weekly_average_cancelled_inputs = None
+        #previous_weekly_average_booking_inputs = None
+            future_booking_inputs = Input(shape=(n_outputs, 1), name='future_booking_inputs')
+            decoder_input_layers['booking'] = future_booking_inputs
+            decoder_inputs = Concatenate(axis=2)([#previous_weekly_average_cancelled_inputs,
+                                              # previous_weekly_average_booking_inputs,
+                                              future_booking_inputs, categorical_inputs])
+        else:
+            if len(inputs_layers) == 0:
+                decoder_inputs = RepeatVector(n_outputs)(state_h)
+            else:
+                decoder_inputs = categorical_inputs
+
+
+    #inputs_layers, categorical_inputs = generate_categorical_embeddings(section='decoder', cat_dict=decoder_cat_dict)
+    #categorical_inputs.append(RepeatVector(n_outputs)(state_h))
+    #decoder_inputs = Concatenate(axis=2)(categorical_inputs)
 
     idx = 0
     if state_c is None:
@@ -68,9 +95,7 @@ def LSTM_decoder(state_h, lstm_units, dense_units, n_outputs: int, decoder_cat_d
 
     outputs = TimeDistributed(Dense(1), name='outputs')(y)
 
-    return outputs, [previous_weekly_average_cancelled_inputs,
-                     # previous_weekly_average_booking_inputs,
-                     future_booking_inputs]
+    return outputs, decoder_input_layers
 
 
 # def LSTM_decoder(state_h, lstm_units, dense_units, n_outputs: int,

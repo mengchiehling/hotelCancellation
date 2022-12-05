@@ -15,7 +15,7 @@ from src.io.load_parameters import optimized_parameters
 from train.logic.training_process import training_process, training_process_opt
 from train.logic.optimization_process import optimization_process
 from train.logic.model_selection import model_training_pipeline
-
+from train.src import config
 
 
 hotel_info = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_hotel_info.csv')))
@@ -98,8 +98,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--input_range', type=int, help='length of input time series')
-    parser.add_argument('--prediction_time', type=int, help='length of output time series')
+    #parser.add_argument('--input_range', type=int, help='length of input time series')
+    #parser.add_argument('--prediction_time', type=int, help='length of output time series')
     parser.add_argument('--hotel_id', type=int, help='id of hotel, should exists in cancel_dataset_target.csv')
     parser.add_argument('--configuration', type=str, help='A')
     #parser.add_argument('--diff', type=int,  nargs='+', help='差分', default=[])
@@ -107,10 +107,11 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    input_range = args.input_range
-    prediction_time = args.prediction_time
+    #input_range = args.input_range
+    #prediction_time = args.prediction_time
     hotel_id = args.hotel_id
     model_type = 'LSTM2LSTM'
+    config.configuration = args.configuration
     #diff = args.diff
     #smooth=args.smooth
 
@@ -123,7 +124,8 @@ if __name__ == "__main__":
     n_splits = basic_parameters['n_splits']
     test_size = basic_parameters['test_size']
     max_train_size = basic_parameters['max_train_size']
-
+    input_range = basic_parameters['input_range']
+    prediction_time = basic_parameters['prediction_time']
     #n_splits = 7
     #test_size = 28
 

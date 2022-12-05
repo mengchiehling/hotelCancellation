@@ -29,7 +29,7 @@ def parenthesis_striped(ingredient: str) -> Tuple[str, Optional[str]]:
 
     return name_1
 
-
+# input range的28天，將每週取平均(例如:每週一) 作為decoder的輸入
 def generate_weekly_inputs(X: Dict, y: Dict):
 
 

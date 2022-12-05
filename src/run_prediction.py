@@ -12,7 +12,7 @@ from src.io.load_parameters import optimized_parameters
 from src.logic.common.functions import generate_weekly_inputs
 from train.logic.model_selection import model_training_pipeline
 from train.logic.data_preparation import tf_input_pipeline
-
+from train.src import config
 
 cancel_target = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_target.csv')))
 
@@ -36,6 +36,7 @@ if __name__ == '__main__':
 
     hotel_id = args.hotel_id
     model_type = 'LSTM2LSTM'
+    config.configuration = args.configuration
 
     model_metadata = _load_yaml(get_file(os.path.join('config', 'training_config.yml')))
 
@@ -109,7 +110,7 @@ if __name__ == '__main__':
 
     # MAPE: only taking the first day into consideration
     # number_of_test_data, number_of_prediction_days = np.array(y_true).shape
-    y_true = np.array(y_true)[:, 0]
+    y_true = np.array(y_true)[:, 0] #所有第一天的y true
     y_pred = np.array(y_pred)[:, 0]
     y_pred = np.round(y_pred, 0)
 

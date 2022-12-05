@@ -35,7 +35,7 @@ def optimization_process(fn, pbounds: Dict, model_type: str, hotel_id: int, conf
 
     export_form = datetime.now().strftime("%Y%m%d-%H")
 
-    dir = os.path.join(get_project_dir(), 'data', 'optimization', 'without_category')
+    dir = os.path.join(get_project_dir(), 'data', 'optimization') #, 'without_category')
     if not os.path.isdir(dir):
         os.makedirs(dir)
 
