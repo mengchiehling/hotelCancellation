@@ -145,6 +145,7 @@ def model_training_pipeline(date_feature: pd.DataFrame, test_size: int, input_ra
                           #recurrent_dropout=recurrent_dropout, n_outputs=n_outputs, **kwargs)
 
     model = m.build_model(n_inputs=n_inputs, n_features=n_features, dropout=dropout,
+                          encoder_cat_dict=X_train['encoder_X_cat'], decoder_cat_dict=X_train['decoder_X_cat'],
                           recurrent_dropout=recurrent_dropout, n_outputs=n_outputs,
                           weekly_inputs=basic_parameters['weekly_inputs'],**kwargs)
 

@@ -44,7 +44,7 @@ def build_model(n_inputs, n_features, encoder_cat_dict: Dict, decoder_cat_dict: 
                                                   dropout=dropout, recurrent_dropout=recurrent_dropout,state_c=state_c,
                                                   n_outputs=n_outputs,weekly_inputs=weekly_inputs)
 
-    for _, layer in outputs.items():
+    for _, layer in decoder_inputs_layers.items():
         encoder_inputs_layers.append(layer)
 
     model = Model(inputs=encoder_inputs_layers, outputs=outputs)
