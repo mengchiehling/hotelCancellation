@@ -33,27 +33,36 @@ def parenthesis_striped(ingredient: str) -> Tuple[str, Optional[str]]:
 # input range的28天，將每週取平均(例如:每週一) 作為decoder的輸入
 def generate_weekly_inputs(X: Dict, y: Dict):
 
+    model_metadata = _load_yaml(get_file(os.path.join('config', 'training_config.yml')))
+    weekly_features = model_metadata['features_configuration'][config.configuration]["weekly"]
 
     encoder_X_num = X['encoder_X_num']
+    for idx,weekly_feature in enumerate(weekly_features):
+        data = encoder_X_num[:, :, idx]
+        data_size, n_days = data.shape
+        rearranged_data = data.reshape((data_size, y['outputs'].shape[1], -1))
+        rearranged_data = rearranged_data.mean(axis=2)
+        rearranged_data = np.expand_dims(rearranged_data, axis=2)
+        X[f"previously_weekly_average_{weekly_feature}_inputs"] = rearranged_data
     # encoder_X_num_canceled = encoder_X_num[:, :, 1]
     # Use the average of 4 weeks average as input
-    encoder_X_num_canceled = encoder_X_num[:, :, 0]
-    data_size, n_days = encoder_X_num_canceled.shape
-    rearranged_encoder_X_num_canceled = encoder_X_num_canceled.reshape((data_size, y['outputs'].shape[1], -1))
-    encoder_X_num_canceled_weekly = rearranged_encoder_X_num_canceled.mean(axis=2)
-    encoder_X_num_canceled_weekly = np.expand_dims(encoder_X_num_canceled_weekly, axis=2)
-    X['previous_weekly_average_cancelled_inputs'] = encoder_X_num_canceled_weekly
+    #encoder_X_num_canceled = encoder_X_num[:, :, 0]
+    #data_size, n_days = encoder_X_num_canceled.shape
 
-    encoder_X_num_canceled = encoder_X_num[:, :, 1]
-    data_size, n_days = encoder_X_num_canceled.shape
-    rearranged_encoder_X_num_canceled = encoder_X_num_canceled.reshape((data_size, y['outputs'].shape[1], -1))
+
+
+    #X['previous_weekly_average_cancelled_inputs'] = encoder_X_num_canceled_weekly
+
+    #encoder_X_num_canceled = encoder_X_num[:, :, 1]
+    #data_size, n_days = encoder_X_num_canceled.shape
+    #rearranged_encoder_X_num_canceled = encoder_X_num_canceled.reshape((data_size, y['outputs'].shape[1], -1))
     #encoder_X_num_canceled_weekly = rearranged_encoder_X_num_canceled.mean(axis=2)
     #encoder_X_num_canceled_weekly = np.expand_dims(encoder_X_num_canceled_weekly, axis=2)
     #X['previous_weekly_average_booking_inputs'] = encoder_X_num_canceled_weekly
 
     #X['future_booking_inputs'] = np.expand_dims(X['decoder_X_num'], axis=2)
 
-    model_metadata = _load_yaml(get_file(os.path.join('config', 'training_config.yml')))
+
     # basic_parameters = model_metadata['basic_parameters']
     numerical_features = model_metadata['features_configuration'][config.configuration]['numerical']
     if 'booking' in numerical_features:

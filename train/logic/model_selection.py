@@ -204,7 +204,10 @@ def cross_validation(date_feature: pd.DataFrame, n_splits: int, test_size: int, 
         y_true_reshape = scaler.inverse_transform(y_true_extend)[:, 0].reshape(y_test['true'].shape)
         y_true.append(y_true_reshape)
 
-        X_test = generate_weekly_inputs(X_test, y_test)
+        basic_parameters = _load_yaml(get_file(os.path.join('config', 'training_config.yml')))['basic_parameters']
+        weekly_inputs = basic_parameters['weekly_inputs']
+        if weekly_inputs:
+            X_test = generate_weekly_inputs(X_test, y_test)
 
         pred = model.predict(X_test)
 
