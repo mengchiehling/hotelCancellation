@@ -9,7 +9,7 @@ from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from sklearn.metrics import mean_squared_error
 
 from src.io.path_definition import get_file
-from src.io.load_parameters import optimized_parameters
+from src.io.load_parameters import load_optimized_parameters
 from train.logic.training_process import training_process, training_process_opt
 from train.logic.optimization_process import optimization_process
 from train.logic.data_preparation import data_preparation

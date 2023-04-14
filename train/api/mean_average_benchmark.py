@@ -7,7 +7,7 @@ import pandas as pd
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import mean_absolute_percentage_error
 
-from src.io.path_definition import get_file, _load_yaml
+from src.io.path_definition import get_file, load_yaml_file
 from train.logic.data_preparation import tf_input_pipeline
 
 hotel_info = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_hotel_info.csv')))
@@ -51,7 +51,7 @@ if __name__ == "__main__" :
     hotel_id = args.hotel_id
     lead_time = 0
 
-    basic_parameters = _load_yaml(get_file(os.path.join('config', 'training_config.yml')))['basic_parameters']
+    basic_parameters = load_yaml_file(get_file(os.path.join('config', 'training_config.yml')))['basic_parameters']
 
     n_splits = basic_parameters['n_splits']
     test_size = basic_parameters['test_size']

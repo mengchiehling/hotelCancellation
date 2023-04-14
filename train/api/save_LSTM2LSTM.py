@@ -6,7 +6,7 @@ import numpy as np
 
 from datetime import datetime
 from src.io.path_definition import get_file, get_project_dir
-from src.io.load_parameters import optimized_parameters
+from src.io.load_parameters import load_optimized_parameters
 from train.logic.model_selection import model_training_pipeline
 from sklearn.preprocessing import LabelEncoder
 
@@ -119,7 +119,7 @@ if __name__ == "__main__":
     categorical_features = categorical_features + covid_features_cat
     date_feature = date_feature[numerical_features + categorical_features]
 
-    params, _ = optimized_parameters(f"{hotel_id}_{model_type}" + "_logs_[\d]{8}-[\d]{2}.json")
+    params, _ = load_optimized_parameters(f"{hotel_id}_{model_type}" + "_logs_[\d]{8}-[\d]{2}.json")
 
     params['batch_size'] = int(params['batch_size'])
     params['decoder_dense_units'] = int(params['batch_size'])

@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_percentage_error
 
-from src.io.load_parameters import optimized_parameters
+from src.io.load_parameters import load_optimized_parameters
 from src.io.path_definition import get_file
 from train.logic.training_process import training_process
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
@@ -103,7 +103,7 @@ if __name__ == "__main__":
 
 
     #已經找出最優化的參數組合，它會放入下面的training process，最後產出y_true,y_pred
-    params, _ = optimized_parameters(f"{hotel_id}_{model_type}" + "_logs_[\d]{8}-[\d]{2}.json")
+    params, _ = load_optimized_parameters(f"{hotel_id}_{model_type}" + "_logs_[\d]{8}-[\d]{2}.json")
 
     params['batch_size'] = int(params['batch_size'])
     params['decoder_dense_units'] = int(params['batch_size'])

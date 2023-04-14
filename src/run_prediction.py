@@ -6,9 +6,9 @@ import pandas as pd
 import numpy as np
 # from tensorflow.keras.models import load_model
 from sklearn.preprocessing import LabelEncoder
-from src.io.path_definition import get_file, _load_yaml
+from src.io.path_definition import get_file, load_yaml_file
 from src.io.load_data import data_preparation
-from src.io.load_parameters import optimized_parameters
+from src.io.load_parameters import load_optimized_parameters
 from src.logic.common.functions import generate_weekly_inputs
 from train.logic.model_selection import model_training_pipeline
 from train.logic.data_preparation import tf_input_pipeline
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     model_type = 'LSTM2LSTM'
     config.configuration = args.configuration
 
-    model_metadata = _load_yaml(get_file(os.path.join('config', 'training_config.yml')))
+    model_metadata = load_yaml_file(get_file(os.path.join('config', 'training_config.yml')))
 
     basic_parameters = model_metadata['basic_parameters']
 
@@ -71,7 +71,7 @@ if __name__ == '__main__':
     date_feature_test = date_feature.iloc[date_splitting_point - input_range + 1 :date_splitting_point + prediction_time + 1]
 
     # Model training
-    params, optimized_metric = optimized_parameters(f"{hotel_id}_{model_type}_{args.configuration}" + "_logs_[\d]{8}-[\d]{2}.json")
+    params, optimized_metric = load_optimized_parameters(f"{hotel_id}_{model_type}_{args.configuration}" + "_logs_[\d]{8}-[\d]{2}.json")
 
     #numerical_features = model_metadata['features_configuration'][args.configuration]
     numerical_features = model_metadata['features_configuration'][args.configuration]['numerical']

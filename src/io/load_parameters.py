@@ -2,21 +2,23 @@ import os
 import re
 from datetime import datetime
 
+from src import config
 from src.io.path_definition import get_project_dir
 
 
-def retrieve_hyperparameter_files(search_pattern: str):
+def retrieve_hyperparameter_files():
 
-    '''
-    search_pattern = "LDA_logs_[\d]{8}-[\d]{2}.json"
-    "CNN2LSTM_logs_[\d]{8}-[\d]{2}.json"
-    :param search_pattern:
+    """
+
     :return:
-    '''
+    """
+    dir_ = os.path.join(get_project_dir(), 'data', 'optimization')
 
+    algorithm = config.algorithm
+    configuration = config.configuration
+    hotel_id = config.hotel_id
 
-    dir_ = os.path.join(get_project_dir(), 'data', 'optimization', 'without_category')
-
+    search_pattern = 'logs_' + algorithm + f"_{configuration}" + f"_{hotel_id}" + "_[\d]{8}-[\d]{4}.json"
 
     res = [f for f in os.listdir(dir_) if re.search(search_pattern, f)]
     files = [os.path.join(dir_, f) for f in res]
@@ -30,9 +32,9 @@ def retrieve_hyperparameter_files(search_pattern: str):
     return files
 
 
-def optimized_parameters(search_pattern: str):
+def load_optimized_parameters():
 
-    files = retrieve_hyperparameter_files(search_pattern)
+    files = retrieve_hyperparameter_files()
 
     target_max = -1
 
