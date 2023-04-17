@@ -43,7 +43,7 @@ def model_training(model, x_train, y_train, x_val, y_val, batch_size, learning_r
         x_train = generate_weekly_inputs(x_train, y_train)
         x_val = generate_weekly_inputs(x_val, y_train)
 
-    history = model.fit(x_train, {'outputs': y_train['outputs']}, epochs=20, batch_size=batch_size, verbose=0,
+    history = model.fit(x_train, {'outputs': y_train['outputs']}, epochs=20, batch_size=batch_size, verbose=1,
                         validation_data=(x_val, {'outputs': y_val['outputs']}), shuffle=True, callbacks=callbacks)
 
     return model
@@ -76,12 +76,19 @@ def model_training_pipeline(df: pd.DataFrame, loss='mse', **kwargs):
     _, n_inputs, n_features = X_train['encoder_X_num'].shape
     _, n_outputs, _ = y_train['outputs'].shape
 
-    assert config.algorithm in ['LSTM2LSTM', 'CNN2LSTM', 'BiLSTM2LSTM']
+    assert config.algorithm in ['LSTM2LSTM', 'CNN2LSTM', 'BiLSTM2LSTM'], f"{config.algorithm} is not within 'LSTM2LSTM', 'CNN2LSTM', 'BiLSTM2LSTM'"
 
     m = importlib.import_module(f"train.logic.model.{algorithm}_architecture")
 
-    encoder_cat_dict = X_train.get('encoder_X_cat', None)
-    decoder_cat_dict = X_train.get('decoder_X_cat', None)
+    if len(config.categorical_features) == 0:
+        encoder_cat_dict = None
+        decoder_cat_dict = None
+    else:
+        encoder_cat_dict = {}
+        decoder_cat_dict = {}
+        for c in config.categorical_features:
+            encoder_cat_dict[f'{c}_encoder'] = X_train[f'{c}_encoder']
+            decoder_cat_dict[f'{c}_decoder'] = X_train[f'{c}_decoder']
 
     model = m.build_model(n_inputs=n_inputs, n_features=n_features, n_outputs=n_outputs,
                           encoder_cat_dict=encoder_cat_dict, decoder_cat_dict=decoder_cat_dict,

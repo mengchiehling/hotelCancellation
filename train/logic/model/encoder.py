@@ -100,7 +100,8 @@ def LSTMRes_layer(x, lstm_units: int, dropout: float, recurrent_dropout: float, 
     return x
 
 
-def LSTM_encoder(n_inputs, n_features, lstm_units: int, encoder_cat_dict, dropout: float=0, recurrent_dropout: float=0):
+def LSTM_encoder(n_inputs, n_features, lstm_units: int, encoder_cat_dict, dropout: float = 0,
+                 recurrent_dropout: float = 0):
 
     inputs_layers, categorical_embedding = generate_categorical_embeddings(section='encoder',
                                                                            cat_dict=encoder_cat_dict)

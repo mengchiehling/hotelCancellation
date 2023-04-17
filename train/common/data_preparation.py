@@ -69,8 +69,10 @@ def to_supervised(df: pd.DataFrame, prediction: bool = False):
 
     results = {'encoder_X_num': np.array(encoder_X_num)}
     if len(categorical_features) > 0:
-        results.update({'encoder_X_cat': encoder_X_cat,
-                        'decoder_X_cat': decoder_X_cat})
+        # results.update({'encoder_X_cat': encoder_X_cat,
+        #                 'decoder_X_cat': decoder_X_cat})
+        results.update(encoder_X_cat)
+        results.update(decoder_X_cat)
 
     if not prediction:
         results['y'] = y  # 原始值

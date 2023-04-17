@@ -86,8 +86,8 @@ def LSTM_decoder(state_h, lstm_units, dense_units, n_outputs: int, decoder_cat_d
 
     idx += 1
     y, state_h, state_c = LSTM_block(y, lstm_units=lstm_units, dropout=dropout,
-                                     recurrent_dropout=recurrent_dropout, idx=idx,
-                                     initial_state=[state_h, state_c])
+                                     recurrent_dropout=recurrent_dropout, idx=idx,)
+                                     # initial_state=[state_h, state_c])
 
     if dense_units:
         dense_units = int(dense_units)

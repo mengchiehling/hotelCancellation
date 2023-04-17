@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from typing import List
+from typing import List, Tuple
 
 import pandas as pd
 
@@ -60,7 +60,7 @@ def load_data() -> pd.DataFrame:
 
 
 # 結合取消數量+訂房量+疫情數據
-def data_preparation(hotel_id: int, remove_business_booking: bool = True) -> pd.DataFrame:
+def load_training_data(hotel_id: int, remove_business_booking: bool = True) -> Tuple[pd.DataFrame, pd.Series]:
 
     df = load_data()
 
@@ -80,10 +80,12 @@ def data_preparation(hotel_id: int, remove_business_booking: bool = True) -> pd.
     df.loc[df['status'] == 'NO_SHOW', 'label'] = 0
     df.loc[df['status'] == 'CANCELED', 'label'] = 1
 
+    df.sort_values(by='check_in', inplace=True)
+
     # Simple time series, without extra features.
-    booking_feature = df.groupby(by="check_in").agg(canceled=('label', 'sum'),
-                                                    booking=('label', 'count'))
+    # booking_feature = df.groupby(by="check_in").agg(canceled=('label', 'sum'),
+    #                                                 booking=('label', 'count'))
+    #
+    # booking_feature = booking_feature.reindex(idx, fill_value=0)
 
-    booking_feature = booking_feature.reindex(idx, fill_value=0)
-
-    return booking_feature
+    return df, idx

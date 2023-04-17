@@ -48,7 +48,7 @@ def build_model(n_inputs, n_features, encoder_cat_dict: Optional[Dict], decoder_
     inputs = copy(encoder_inputs_layers)
 
     for _, layer in decoder_input_layers.items():
-        inputs.append(layer)
+        inputs.extend(layer)
 
     model = Model(inputs=inputs, outputs=outputs)
 
