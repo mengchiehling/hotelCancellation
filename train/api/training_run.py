@@ -2,6 +2,7 @@ import argparse
 import os
 import joblib
 from functools import partial
+from typing import Optional
 
 import pandas as pd
 import numpy as np
@@ -30,8 +31,7 @@ def create_dataset(dataset_: pd.DataFrame, test_size):
 
     df_hotel = dataset_.copy()
 
-    train_dataset_, eval_dataset, train_target_, eval_target = timeseries_train_test_split(df_hotel,
-                                                                                           test_size=test_size)
+    train_dataset_, eval_dataset, train_target_, eval_target = timeseries_train_test_split(df_hotel)
 
     return train_dataset_, eval_dataset, train_target_, eval_target
 
@@ -138,5 +138,5 @@ if __name__ == "__main__":
 
     optimization_process(cross_validation_fn, pbounds)
 
-    # export_final_model(dataset_, evaluation=False)
-    # export_final_model(dataset_, evaluation=True)
+    export_final_model(dataset_=to_timeseries_dataframe(df, idx), evaluation=False)
+    export_final_model(dataset_=train_dataset, evaluation=True)

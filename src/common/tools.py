@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 
-def timeseries_train_test_split(df: pd.DataFrame, test_size: float):
+def timeseries_train_test_split(df: pd.DataFrame, test_size: float = 0.1):
 
     train_time, test_time = train_test_split(np.unique(df['check_in']), test_size=test_size, shuffle=False,
                                              random_state=0)
