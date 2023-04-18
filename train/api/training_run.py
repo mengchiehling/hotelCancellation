@@ -134,7 +134,7 @@ if __name__ == "__main__":
     for key, value in pbounds.items():
         pbounds[key] = eval(value)
 
-    cross_validation_fn = partial(cross_validation, date_feature=train_dataset, loss='mse')
+    cross_validation_fn = partial(cross_validation, date_feature=train_dataset, loss='mse', optimization=True)
 
     optimization_process(cross_validation_fn, pbounds)
 

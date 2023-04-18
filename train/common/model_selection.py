@@ -7,12 +7,15 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import TimeSeriesSplit, train_test_split
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_squared_error
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.optimizers import Adam
-from train.common.data_preparation import tf_input_pipeline
+
 
 from src import config
 from src.logic.common.functions import generate_weekly_inputs
+from src.common.tools import prediction_postprocessing, timeseries_prediction_postprocessing
+from train.common.data_preparation import tf_input_pipeline
 
 
 def feature_normalization(df_train, df_val):
@@ -103,7 +106,7 @@ def model_training_pipeline(df: pd.DataFrame, loss='mse', **kwargs):
     return model, scaler
 
 
-def cross_validation(date_feature: pd.DataFrame, loss: str = 'mse', **kwargs):
+def cross_validation(date_feature: pd.DataFrame, optimization: bool, loss: str = 'mse', **kwargs):
 
     numerical_features = config.numerical_features
     categorical_features = config.categorical_features
@@ -136,17 +139,22 @@ def cross_validation(date_feature: pd.DataFrame, loss: str = 'mse', **kwargs):
         df_test.loc[:, numerical_features] = scaler.transform(df_test[config.numerical_features])
 
         X_test, y_test = tf_input_pipeline(df_test)
-
-        y_true_extend = np.repeat(y_test['true'].reshape(-1, 1), len(scaler.scale_), axis=1)
-        y_true_reshape = scaler.inverse_transform(y_true_extend)[:, 0].reshape(y_test['true'].shape)
-        y_true.append(y_true_reshape)
+        true_postprocessed = prediction_postprocessing(y_test['true'], scaler=scaler)
+        true_avg = timeseries_prediction_postprocessing(true_postprocessed)
+        y_true.append(true_postprocessed)
 
         X_test = generate_weekly_inputs(X_test, y_test)
 
         pred = model.predict(X_test)
 
-        y_pred_extend = np.repeat(pred.reshape(-1, 1), len(scaler.scale_), axis=1)
-        y_pred_reshape = np.round(scaler.inverse_transform(y_pred_extend)[:, 0].reshape(pred.shape))
-        y_pred.append(y_pred_reshape)
+        # y_pred_extend = np.repeat(pred.reshape(-1, 1), len(scaler.scale_), axis=1)
+        # y_pred_reshape = np.round(scaler.inverse_transform(y_pred_extend)[:, 0].reshape(pred.shape))
+        pred_postprocessed = prediction_postprocessing(pred, scaler=scaler)
+        pred_avg = timeseries_prediction_postprocessing(pred_postprocessed)
+        y_pred.append(pred_postprocessed)
 
-    return np.array(y_true), np.array(y_pred)
+    if optimization:
+        rmse = np.sqrt(mean_squared_error(np.array(y_true).flatten()+1, np.array(y_pred).flatten()+1))
+        return rmse
+    else:
+        return np.array(y_pred)
