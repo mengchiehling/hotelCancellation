@@ -34,7 +34,7 @@ def optimization_process(fn, pbounds: Dict) -> Tuple[Dict, np.ndarray]:
         pbounds=pbounds,
         random_state=1)
 
-    export_form = datetime.now().strftime("%Y%m%d-%H")
+    export_form = datetime.now().strftime("%Y%m%d-%H%M")
 
     dir_ = os.path.join(get_project_dir(), 'data', 'optimization') #, 'without_category')
     if not os.path.isdir(dir_):
