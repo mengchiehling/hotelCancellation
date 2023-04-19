@@ -112,12 +112,6 @@ if __name__ == "__main__":
     set_configuration()
 
     df, idx = load_training_data(args.hotel_id, remove_business_booking=True)
-    train_dataset, test_dataset, _, _ = create_dataset(df, test_size=args.test_size)
-
-    end_of_train_dataset = idx.index(train_dataset.iloc[-1]['check_in'])  # index
-
-    train_dataset = to_timeseries_dataframe(train_dataset, idx[:end_of_train_dataset+1])
-    # train_dataset = to_timeseries_dataframe(train_dataset, idx)
 
     file_path = get_file(os.path.join('config', 'training_config.yml'))
     metadata = load_yaml_file(file_path)
@@ -127,8 +121,16 @@ if __name__ == "__main__":
     config.categorical_features = features_configuration['categorical']
     config.numerical_features = features_configuration['numerical']
 
-    # for encoded_column in categorical_features:
-    #     date_feature = labelencoding(date_feature, encoded_column)
+    for encoded_column in config.categorical_features:
+        df = labelencoding(df, encoded_column)
+
+    train_dataset, test_dataset, _, _ = create_dataset(df, test_size=args.test_size)
+
+    end_of_train_dataset = idx.index(train_dataset.iloc[-1]['check_in'])  # index
+
+    train_dataset = to_timeseries_dataframe(train_dataset, idx[:end_of_train_dataset+1])
+    # train_dataset = to_timeseries_dataframe(train_dataset, idx)
+
 
     pbounds = metadata[f'{args.algorithm.lower()}_pbounds']
     for key, value in pbounds.items():

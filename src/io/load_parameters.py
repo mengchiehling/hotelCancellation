@@ -1,5 +1,6 @@
 import os
 import re
+import numpy as np
 from datetime import datetime
 
 from src import config
@@ -36,7 +37,7 @@ def load_optimized_parameters():
 
     files = retrieve_hyperparameter_files()
 
-    target_max = -1
+    target_max = -np.inf
 
     for f in files:
         with open(f, 'rb') as f:
