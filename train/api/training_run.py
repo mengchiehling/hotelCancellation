@@ -3,7 +3,7 @@ import os
 import joblib
 from functools import partial
 from typing import Optional
-
+import tensorflow as tf
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
@@ -54,7 +54,16 @@ def export_final_model(dataset_, evaluation: bool = False):
     else:
         filename_ = basic_filename + ".sav"
 
-    joblib.dump(model, filename_)
+    # save model using TensorFlow's save() method
+    tf.keras.models.save_model(model, filename_)
+
+    scaler_filename = os.path.join(dir_, f"{config.algorithm}_{config.configuration}_{config.hotel_id}_scaler.joblib")
+    joblib.dump(scaler, scaler_filename)
+
+    #    joblib.dump(model, filename_)
+    #    model.save(filename_)
+    #    scaler_filename = os.path.join(dir_, f"{config.algorithm}_{config.configuration}_{config.hotel_id}_scaler.joblib")
+    #    joblib.dump(scaler, scaler_filename)
 
 
 def set_configuration():
