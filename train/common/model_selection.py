@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import TimeSeriesSplit, train_test_split
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_percentage_error
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.optimizers import Adam
 
@@ -154,7 +154,7 @@ def cross_validation(date_feature: pd.DataFrame, optimization: bool, loss: str =
         y_pred.append(pred_postprocessed)
 
     if optimization:
-        rmse = np.sqrt(mean_squared_error(np.array(y_true).flatten()+1, np.array(y_pred).flatten()+1))
-        return rmse
+        mape = mean_absolute_percentage_error(np.array(y_true).flatten()+1, np.array(y_pred).flatten()+1)
+        return mape
     else:
         return np.array(y_pred)
