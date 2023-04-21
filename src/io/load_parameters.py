@@ -4,7 +4,7 @@ import numpy as np
 from datetime import datetime
 
 from src import config
-from src.io.path_definition import get_project_dir
+from src.io.path_definition import get_datafetch
 
 
 def retrieve_hyperparameter_files():
@@ -13,7 +13,7 @@ def retrieve_hyperparameter_files():
 
     :return:
     """
-    dir_ = os.path.join(get_project_dir(), 'data', 'optimization')
+    dir_ = os.path.join(get_datafetch(), 'optimization')
 
     algorithm = config.algorithm
     configuration = config.configuration

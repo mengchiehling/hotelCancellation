@@ -95,7 +95,7 @@ def to_timeseries_dataframe(df_: pd.DataFrame, idx_: pd.Series) -> pd.DataFrame:
     # Simple time series, without extra features.
     booking_feature = df_.groupby(by="check_in").agg(canceled=('label', 'sum'),
                                                      booking=('label', 'count'),
-                                                     holiday=('holiday', np.unique))
+                                                     holiday=('holiday', lambda x: np.unique(x)[0]))
 
     booking_feature = booking_feature.reindex(idx_, fill_value=0)
 

@@ -10,7 +10,7 @@ from bayes_opt.event import Events
 from bayes_opt.util import load_logs
 
 from src import config
-from src.io.path_definition import get_project_dir, get_file, load_yaml_file
+from src.io.path_definition import get_project_dir, get_file, load_yaml_file, get_datafetch
 
 
 def optimization_process(fn, pbounds: Dict) -> Tuple[Dict, np.ndarray]:
@@ -36,7 +36,7 @@ def optimization_process(fn, pbounds: Dict) -> Tuple[Dict, np.ndarray]:
 
     export_form = datetime.now().strftime("%Y%m%d-%H%M")
 
-    dir_ = os.path.join(get_project_dir(), 'data', 'optimization') #, 'without_category')
+    dir_ = os.path.join(get_datafetch(), 'optimization') #, 'without_category')
     if not os.path.isdir(dir_):
         os.makedirs(dir_)
 
