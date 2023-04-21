@@ -50,9 +50,9 @@ def export_final_model(dataset_, evaluation: bool = False):
     basic_filename = os.path.join(dir_, f"{config.algorithm}_{config.configuration}_{config.hotel_id}")
 
     if evaluation:
-        filename_ = basic_filename + "_evaluation.sav"
+        filename_ = basic_filename + "_evaluation"
     else:
-        filename_ = basic_filename + ".sav"
+        filename_ = basic_filename
 
     # save model using TensorFlow's save() method
     tf.keras.models.save_model(model, filename_)
