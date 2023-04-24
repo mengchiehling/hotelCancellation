@@ -66,6 +66,11 @@ def load_training_data(hotel_id: int, remove_business_booking: bool = True) -> T
 
     idx = remake_time_index(df, hotel_id=hotel_id)
 
+    df['adults'].fillna(0, inplace=True)
+    df['children'].fillna(0, inplace=True)
+    filter_ = (df.adults == 0) & (df.children == 0)
+    df = df[~filter_]
+
     # specifcy the pms_hotel_id
     df = df[df['pms_hotel_id'] == hotel_id]
 
