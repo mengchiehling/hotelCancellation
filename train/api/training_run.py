@@ -106,7 +106,8 @@ def to_timeseries_dataframe(df_: pd.DataFrame, idx_: pd.Series) -> pd.DataFrame:
                                                      is_rest_day=('is_rest_day', lambda x: np.unique(x)[0]),
                                                      is_event=('is_event', lambda x: np.unique(x)[0]),
                                                      s_vecation=('s_vecation', lambda x: np.unique(x)[0]),
-                                                     w_vecation=('w_vecation', lambda x: np.unique(x)[0]))
+                                                     w_vecation=('w_vecation', lambda x: np.unique(x)[0]),
+                                                     vecation=('vecation', lambda x: np.unique(x)[0]))
 
     booking_feature = booking_feature.reindex(idx_, fill_value=0)
 
