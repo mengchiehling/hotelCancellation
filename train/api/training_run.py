@@ -95,7 +95,18 @@ def to_timeseries_dataframe(df_: pd.DataFrame, idx_: pd.Series) -> pd.DataFrame:
     # Simple time series, without extra features.
     booking_feature = df_.groupby(by="check_in").agg(canceled=('label', 'sum'),
                                                      booking=('label', 'count'),
-                                                     holiday=('holiday', lambda x: np.unique(x)[0]))
+                                                     holiday=('holiday', lambda x: np.unique(x)[0]),
+                                                     days2vecation=('days2vecation', lambda x: np.unique(x)[0]),
+                                                     vecation_days=('vecation_days', lambda x: np.unique(x)[0]),
+                                                     season=('season', lambda x: np.unique(x)[0]),
+                                                     midd=('midd', lambda x: np.unique(x)[0]),
+                                                     weekdate=('weekdate', lambda x: np.unique(x)[0]),
+                                                     sallery=('sallery', lambda x: np.unique(x)[0]),
+                                                     workingday=('workingday', lambda x: np.unique(x)[0]),
+                                                     is_rest_day=('is_rest_day', lambda x: np.unique(x)[0]),
+                                                     is_event=('is_event', lambda x: np.unique(x)[0]),
+                                                     s_vecation=('s_vecation', lambda x: np.unique(x)[0]),
+                                                     w_vecation=('w_vecation', lambda x: np.unique(x)[0]))
 
     booking_feature = booking_feature.reindex(idx_, fill_value=0)
 
