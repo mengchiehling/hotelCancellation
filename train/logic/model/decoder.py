@@ -33,6 +33,7 @@ def LSTM_decoder(state_h, lstm_units, dense_units, n_outputs: int, decoder_cat_d
                  weekly_inputs: bool = False):
 
     numerical_features = config.numerical_features
+    future_features = config.future_features
 
     decoder_input_layers = {}  # layers for raw input
     decoder_first_layers = []  # layers for process data before the CNN/LSTM
@@ -50,10 +51,10 @@ def LSTM_decoder(state_h, lstm_units, dense_units, n_outputs: int, decoder_cat_d
         decoder_input_layers['weekly_inputs'] = previous_weekly_average_cancelled_inputs
         decoder_first_layers.append(previous_weekly_average_cancelled_inputs)
 
-    if 'booking' in numerical_features:
-        future_booking_inputs = Input(shape=(n_outputs, 1), name='future_booking_inputs')
-        decoder_input_layers['booking'] = future_booking_inputs
-        decoder_first_layers.append(future_booking_inputs)
+    for c in future_features:
+        layer = Input(shape=(n_outputs, 1), name=f'future_{c}_inputs')
+        decoder_input_layers[c] = layer
+        decoder_first_layers.append(layer)
             # decoder_inputs = Concatenate(axis=2)([previous_weekly_average_cancelled_inputs,
             #                                       future_booking_inputs, embedding_layers])
         # else:
