@@ -51,10 +51,11 @@ def LSTM_decoder(state_h, lstm_units, dense_units, n_outputs: int, decoder_cat_d
         decoder_input_layers['weekly_inputs'] = previous_weekly_average_cancelled_inputs
         decoder_first_layers.append(previous_weekly_average_cancelled_inputs)
 
-    for c in future_features:
-        layer = Input(shape=(n_outputs, 1), name=f'future_{c}_inputs')
-        decoder_input_layers[c] = layer
-        decoder_first_layers.append(layer)
+    if future_features is not None:
+        for c in future_features:
+            layer = Input(shape=(n_outputs, 1), name=f'future_{c}_inputs')
+            decoder_input_layers[c] = layer
+            decoder_first_layers.append(layer)
             # decoder_inputs = Concatenate(axis=2)([previous_weekly_average_cancelled_inputs,
             #                                       future_booking_inputs, embedding_layers])
         # else:
