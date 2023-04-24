@@ -61,8 +61,8 @@ def generate_weekly_inputs(x: Dict, y: Dict) -> Dict:
     # encoder_X_num_canceled_weekly = np.expand_dims(encoder_X_num_canceled_weekly, axis=2)
     # X['previous_weekly_average_booking_inputs'] = encoder_X_num_canceled_weekly
     # basic_parameters = model_metadata['basic_parameters']
-    numerical_features = config.numerical_features
-    if 'booking' in numerical_features:
-        x['future_booking_inputs'] = np.expand_dims(x['decoder_X_num'], axis=2)
+    # numerical_features = config.numerical_features
+    # if 'booking' in numerical_features:
+    #     x['future_booking_inputs'] = np.expand_dims(x['decoder_X_num'], axis=2)
 
     return x

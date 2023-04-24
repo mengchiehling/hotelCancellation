@@ -14,6 +14,7 @@ def to_supervised(df: pd.DataFrame, prediction: bool = False):
 
     numerical_features = config.numerical_features
     categorical_features = config.categorical_features
+    future_features = config.future_features
 
     day_increment = 1
 
@@ -22,6 +23,9 @@ def to_supervised(df: pd.DataFrame, prediction: bool = False):
         # encoder categorical features
         decoder_X_cat = {f'{c}_decoder': [] for c in categorical_features}
         encoder_X_cat = {f'{c}_encoder': [] for c in categorical_features}
+
+    if future_features is not None:
+        decoder_X_num = {f'future_{c}_inputs': [] for c in future_features}
 
     if not prediction:
         y = list()
@@ -45,6 +49,10 @@ def to_supervised(df: pd.DataFrame, prediction: bool = False):
                     decoder_X_cat[f'{c}_decoder'].append(date_feature_categorical.iloc[out_start: out_end][c])
                     encoder_X_cat[f'{c}_encoder'].append(date_feature_categorical.iloc[in_start: in_end][c])
 
+            if future_features is not None:
+                for c in future_features:
+                    decoder_X_num[f'future_{c}_inputs'].append(df.iloc[out_start: out_end][c])
+
             if not prediction:
                 y.append(df.iloc[out_start: out_end]['canceled'].tolist())
                 #y_label.append(df.iloc[out_start: out_end]['canceled_label'].tolist())
@@ -67,12 +75,17 @@ def to_supervised(df: pd.DataFrame, prediction: bool = False):
             encoder_X_cat[layer_name] = np.array(encoder_X_cat[layer_name])
             encoder_X_cat[layer_name] = encoder_X_cat[layer_name].reshape(-1, config.input_range, 1)
 
+    if future_features is not None:
+        for layer_name in decoder_X_num.keys():
+            decoder_X_num[layer_name] = np.array(decoder_X_num[layer_name])
+            decoder_X_num[layer_name] = decoder_X_num[layer_name].reshape(-1, config.prediction_time, 1)
+
     results = {'encoder_X_num': np.array(encoder_X_num)}
     if len(categorical_features) > 0:
-        # results.update({'encoder_X_cat': encoder_X_cat,
-        #                 'decoder_X_cat': decoder_X_cat})
         results.update(encoder_X_cat)
         results.update(decoder_X_cat)
+    if future_features is not None:
+        results.update(decoder_X_num)
 
     if not prediction:
         results['y'] = y  # 原始值

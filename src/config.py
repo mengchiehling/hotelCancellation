@@ -10,3 +10,4 @@ lead_time = 0
 weekly_inputs = None
 categorical_features = None
 numerical_features = None
+future_features = None

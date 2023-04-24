@@ -129,6 +129,7 @@ if __name__ == "__main__":
 
     config.categorical_features = features_configuration['categorical']
     config.numerical_features = features_configuration['numerical']
+    config.future_features = features_configuration.get('future', None)
 
     for encoded_column in config.categorical_features:
         df = labelencoding(df, encoded_column)
@@ -139,7 +140,6 @@ if __name__ == "__main__":
 
     train_dataset = to_timeseries_dataframe(train_dataset, idx[:end_of_train_dataset+1])
     # train_dataset = to_timeseries_dataframe(train_dataset, idx)
-
 
     pbounds = metadata[f'{args.algorithm.lower()}_pbounds']
     for key, value in pbounds.items():
