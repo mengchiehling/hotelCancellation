@@ -6,68 +6,46 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import mean_absolute_percentage_error
-
+from src.common.load_data import load_training_data
 from src.io.path_definition import get_file, load_yaml_file
-from train.logic.data_preparation import tf_input_pipeline
-
-hotel_info = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_hotel_info.csv')))
-
-cancel_target = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_target.csv')))
-date_feature = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_date_feature.csv')))
-hotel_meta = pd.read_csv(get_file(os.path.join('data', 'cancel_dataset_hotel_info.csv')), index_col=0)
+from train.api.training_run import create_dataset, to_timeseries_dataframe
 
 
-def data_preparation(hotel_id: int, date_feature: pd.DataFrame, cancel_target: pd.DataFrame):
-
-    column = f"hotel_{hotel_id}_canceled"
-
-    cancel_target['date'] = cancel_target['date'].apply(lambda x: datetime.strptime(x, '%Y/%m/%d').strftime("%Y/%m/%d"))
-    cancel_target.set_index('date', inplace=True)
-    hotel_cancel = cancel_target[column].replace("-", np.nan).dropna().astype(int)
-
-    date_feature['date'] = date_feature['date'].apply(lambda x: datetime.strptime(x, '%Y/%m/%d').strftime("%Y/%m/%d"))
-    date_feature.set_index('date', inplace=True)
-    date_feature = date_feature.loc[hotel_cancel.index]
-
-    date_feature['canceled'] = hotel_cancel   # 原始值
-
-    num_feature_columns = ['canceled']
-
-    return num_feature_columns, date_feature
-
-
-if __name__ == "__main__" :
+if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--input_range', type=int, help='length of input time series')
-    parser.add_argument('--prediction_time', type=int, help='length of output time series')
+    parser.add_argument('--input_range', type=int, default=28)
+    parser.add_argument('--prediction_time', type=int, default=7)
     parser.add_argument('--hotel_id', type=int, help='id of hotel, should exists in cancel_dataset_target.csv')
+    parser.add_argument('--n_splits', type=int, default=5)
+    parser.add_argument('--test_size', type=int, default=28)
+    parser.add_argument('--max_train_size', type=int, default=180)
 
     args = parser.parse_args()
 
     input_range = args.input_range
     prediction_time = args.prediction_time
     hotel_id = args.hotel_id
+    n_splits = args.n_splits
+    test_size = args.test_size
+    max_train_size = args.max_train_size
     lead_time = 0
 
-    basic_parameters = load_yaml_file(get_file(os.path.join('config', 'training_config.yml')))['basic_parameters']
+    df, idx = load_training_data(args.hotel_id, remove_business_booking=True)
 
-    n_splits = basic_parameters['n_splits']
-    test_size = basic_parameters['test_size']
-    max_train_size = basic_parameters['max_train_size']
+    train_dataset, test_dataset, _, _ = create_dataset(df, test_size=args.test_size)
 
-    # 做training或evaluation都要讀取數據
+    end_of_train_dataset = idx.index(train_dataset.iloc[-1]['check_in'])
 
-    numerical_features, date_feature = data_preparation(hotel_id, date_feature, cancel_target)
-    date_feature = date_feature[numerical_features]
+    train_dataset = to_timeseries_dataframe(train_dataset, idx[:end_of_train_dataset+1])
 
     tscv = TimeSeriesSplit(n_splits=n_splits, test_size=test_size, max_train_size=max_train_size)
 
     y_pred = []
     y_true = []
 
-    for n_fold, (train_index, test_index) in enumerate(tscv.split(date_feature)):
+    for n_fold, (train_index, test_index) in enumerate(tscv.split(train_dataset)):
         test_index = np.arange(test_index[0] - input_range - lead_time - prediction_time, test_index[-1] + 1)
 
         df_train = date_feature.iloc[train_index]
