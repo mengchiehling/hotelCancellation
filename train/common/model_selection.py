@@ -154,7 +154,10 @@ def cross_validation(date_feature: pd.DataFrame, optimization: bool, loss: str =
         y_pred.append(pred_postprocessed)
 
     if optimization:
-        mape = mean_absolute_percentage_error(np.array(y_true).flatten()+1, np.array(y_pred).flatten()+1)
+        try:
+            mape = mean_absolute_percentage_error(np.array(y_true).flatten()+1, np.array(y_pred).flatten()+1)
+        except ValueError:
+            mape = 10
         return -mape
     else:
         return np.array(y_pred)
