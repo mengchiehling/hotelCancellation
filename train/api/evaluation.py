@@ -142,4 +142,7 @@ if __name__ == "__main__":
     _, test_dataset, _, _ = create_dataset(df, test_size=args.test_size)
     test_dataset = to_timeseries_dataframe(test_dataset, idx[end_of_train_dataset + 1:])
     test_dataset['pred_canceled'] = y_pred
+
+    test_dataset.rename(columns={"canceled": "label", "cabceled_pred": 'time_series_pred'}, inplace=True)
+    test_dataset = test_dataset[["label", "time_series_pred"]]
     test_dataset.to_csv(filepath)
