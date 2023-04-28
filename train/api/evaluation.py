@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     y_true = []
     for ix, y in enumerate(true_postprocessed):
-        if ix != len(true_postprocessed):
+        if ix != len(true_postprocessed)-1:
             y_true.append(y[0])
         else:
             y_true.extend(list(y))
@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
     y_pred = []
     for ix, y in enumerate(pred_postprocessed):
-        if ix != len(pred_postprocessed):
+        if ix != len(pred_postprocessed)-1:
             y_pred.append(y[0])
         else:
             y_pred.extend(list(y))
