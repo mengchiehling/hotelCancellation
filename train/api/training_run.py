@@ -57,7 +57,7 @@ def export_final_model(dataset_, evaluation: bool = False):
     # save model using TensorFlow's save() method
     tf.keras.models.save_model(model, filename_)
 
-    scaler_filename = os.path.join(dir_, f"{config.algorithm}_{config.configuration}_{config.hotel_id}_scaler.joblib")
+    scaler_filename = filename_ + "_scaler.joblib"
     joblib.dump(scaler, scaler_filename)
 
     #    joblib.dump(model, filename_)
@@ -156,10 +156,10 @@ if __name__ == "__main__":
     pbounds = metadata[f'{args.algorithm.lower()}_pbounds']
     for key, value in pbounds.items():
         pbounds[key] = eval(value)
+    # 160, 162先暫時註解掉
+    #cross_validation_fn = partial(cross_validation, date_feature=train_dataset, loss='mse', optimization=True)
 
-    cross_validation_fn = partial(cross_validation, date_feature=train_dataset, loss='mse', optimization=True)
-
-    optimization_process(cross_validation_fn, pbounds)
+    #optimization_process(cross_validation_fn, pbounds)
 
     export_final_model(dataset_=to_timeseries_dataframe(df, idx), evaluation=False)
     export_final_model(dataset_=train_dataset, evaluation=True)

@@ -1,7 +1,10 @@
 import argparse
 import os
-
+import joblib
 import pandas as pd
+import numpy as np
+import tensorflow as tf
+import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_percentage_error
 
 from src import config
@@ -67,24 +70,76 @@ if __name__ == "__main__":
 
     test_dataset = pd.concat([train_dataset.iloc[-config.input_range:], test_dataset])
 
-    scaler = None  # put the scaler here
+    # scaler = None  # put the scaler here
+    dir_ = os.path.join(get_datafetch(), 'model')
+    basic_filename = f"{config.algorithm}_{config.configuration}_{config.hotel_id}_evaluation"
+    scaler_filename = os.path.join(dir_, basic_filename + "_scaler.joblib")
+    scaler = joblib.load(scaler_filename)
 
     test_dataset.loc[:, config.numerical_features] = scaler.transform(test_dataset[config.numerical_features])
 
     X_test, y_test = tf_input_pipeline(test_dataset)
     # Ground Truth
     true_postprocessed = prediction_postprocessing(y_test['true'], scaler=scaler)
-    true_avg = timeseries_prediction_postprocessing(true_postprocessed)
+
+    y_true = []
+    for ix, y in enumerate(true_postprocessed):
+        if ix != len(true_postprocessed):
+            y_true.append(y[0])
+        else:
+            y_true.extend(list(y))
+
+    # true_avg = timeseries_prediction_postprocessing(true_postprocessed)
 
     X_test = generate_weekly_inputs(X_test, y_test)
 
-    dir_ = os.path.join(get_datafetch(), 'model')
-    basic_filename = os.path.join(dir_, f"{config.algorithm}_{config.configuration}_{config.hotel_id}")
-    model = None  # the model
+    model = tf.keras.models.load_model(os.path.join(dir_, basic_filename))
 
     # Prediction
     pred = model.predict(X_test)
     pred_postprocessed = prediction_postprocessing(pred, scaler=scaler)
-    pred_avg = timeseries_prediction_postprocessing(pred_postprocessed)
 
-    mape = mean_absolute_percentage_error(true_avg.flatten() + 1, pred_avg.flatten() + 1)
+    y_pred = []
+    for ix, y in enumerate(pred_postprocessed):
+        if ix != len(pred_postprocessed):
+            y_pred.append(y[0])
+        else:
+            y_pred.extend(list(y))
+
+    # pred_avg = pred_postprocessed[:, 0]
+    # pred_avg = timeseries_prediction_postprocessing(pred_postprocessed)
+
+    # 只看一天
+    mape2 = mean_absolute_percentage_error(np.array(y_true) + 1, np.array(y_pred) + 1)
+    print("第一天的MAPE值: {:.4f}".format(mape2))
+
+    y_abs_diff = np.abs(np.array(y_true) - np.array(y_pred))
+    wmape2 = y_abs_diff.sum() / np.array(y_true).sum()
+    print("第一天的WMAPE值: {:.4f}".format(wmape2))
+
+    # 整體
+    mape1 = mean_absolute_percentage_error(true_postprocessed.flatten() + 1, pred_postprocessed.flatten() + 1)
+    print(mape1)
+    print("整體的MAPE值: {:.4f}".format(mape1))
+
+    y_abs_diff1 = np.abs(true_postprocessed - pred_postprocessed)
+    wmape1 = y_abs_diff1.sum() / true_postprocessed.sum()
+    print("整體的WMAPE值: {:.4f}".format(wmape1))
+
+    # 畫第一天
+    fig, ax = plt.subplots()
+    ax.plot(y_true, color="red", label="The actual number of canceled orders")
+    ax.plot(y_pred, color="blue", label="The predict number of canceled orders")
+    ax.set_xlabel("Check in date")
+    ax.set_ylabel("Canceled orders")
+    plt.legend()
+    plt.savefig(f"{basic_filename}.png")
+
+    # 印出來第一天的
+    filepath = os.path.join(get_datafetch(),
+                            f'predictResult(no fill zero)_{config.algorithm}_{config.hotel_id}_{config.configuration}.csv')
+
+    _, test_dataset, _, _ = create_dataset(df, test_size=args.test_size)
+    test_dataset = to_timeseries_dataframe(test_dataset, idx[end_of_train_dataset + 1:])
+    test_dataset['pred_canceled'] = y_pred
+    test_dataset.to_csv(filepath)

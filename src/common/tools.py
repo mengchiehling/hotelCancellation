@@ -27,7 +27,7 @@ def prediction_postprocessing(y: np.ndarray, scaler) -> np.ndarray:
 
 def timeseries_prediction_postprocessing(y: np.ndarray) -> np.ndarray:
 
-    y_exp = np.empty((config.test_size, config.test_size + config.prediction_time - 1), dtype=object)
+    y_exp = np.empty((len(y), len(y) + config.prediction_time - 1), dtype=object)
 
     for ix, pred in enumerate(y):
         y_exp[ix, ix: ix + config.prediction_time] = pred
