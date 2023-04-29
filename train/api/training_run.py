@@ -56,14 +56,10 @@ def export_final_model(dataset_, evaluation: bool = False):
 
     # save model using TensorFlow's save() method
     tf.keras.models.save_model(model, filename_)
+    # model.save(f"{filename_}.h5")
 
     scaler_filename = filename_ + "_scaler.joblib"
     joblib.dump(scaler, scaler_filename)
-
-    #    joblib.dump(model, filename_)
-    #    model.save(filename_)
-    #    scaler_filename = os.path.join(dir_, f"{config.algorithm}_{config.configuration}_{config.hotel_id}_scaler.joblib")
-    #    joblib.dump(scaler, scaler_filename)
 
 
 def set_configuration():
@@ -77,10 +73,6 @@ def set_configuration():
     config.input_range = args.input_range
     config.prediction_time = args.prediction_time
     config.weekly_inputs = args.weekly_inputs
-    # features_configuration = load_yaml_file(get_file(os.path.join('config', 'training_config.yml')))['features_configuration'][args.configuration]
-    #
-    # for key, values in features_configuration.items():
-    #     config.features_configuration[key] = values
 
 
 def to_timeseries_dataframe(df_: pd.DataFrame, idx_: pd.Series) -> pd.DataFrame:
@@ -157,9 +149,9 @@ if __name__ == "__main__":
     for key, value in pbounds.items():
         pbounds[key] = eval(value)
     # 160, 162先暫時註解掉
-    #cross_validation_fn = partial(cross_validation, date_feature=train_dataset, loss='mse', optimization=True)
-
-    #optimization_process(cross_validation_fn, pbounds)
+    # cross_validation_fn = partial(cross_validation, date_feature=train_dataset, loss='mse', optimization=True)
+    #
+    # optimization_process(cross_validation_fn, pbounds)
 
     export_final_model(dataset_=to_timeseries_dataframe(df, idx), evaluation=False)
     export_final_model(dataset_=train_dataset, evaluation=True)

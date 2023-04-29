@@ -110,7 +110,10 @@ def LSTM_encoder(n_inputs, n_features, lstm_units: int, encoder_cat_dict, dropou
 
     inputs_layers.append(encoder_numerical_inputs)
 
-    x = Concatenate(axis=2)(categorical_embedding + [encoder_numerical_inputs])
+    if categorical_embedding:
+        x = Concatenate(axis=2)(categorical_embedding + [encoder_numerical_inputs])
+    else:
+        x = encoder_numerical_inputs
 
     idx = 0
     x, state_h, state_c = LSTM_block(x, lstm_units, dropout, recurrent_dropout, idx)

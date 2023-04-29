@@ -56,21 +56,6 @@ def LSTM_decoder(state_h, lstm_units, dense_units, n_outputs: int, decoder_cat_d
             layer = Input(shape=(n_outputs, 1), name=f'future_{c}_inputs')
             decoder_input_layers[c] = layer
             decoder_first_layers.append(layer)
-            # decoder_inputs = Concatenate(axis=2)([previous_weekly_average_cancelled_inputs,
-            #                                       future_booking_inputs, embedding_layers])
-        # else:
-        #     decoder_inputs = Concatenate(axis=2)([previous_weekly_average_cancelled_inputs,
-        #                                           embedding_layers])
-    # else:
-    #     if 'booking' in numerical_features:
-    #         future_booking_inputs = Input(shape=(n_outputs, 1), name='future_booking_inputs')
-    #         decoder_input_layers['booking'] = future_booking_inputs
-    #         decoder_inputs = Concatenate(axis=2)([future_booking_inputs, embedding_layers])
-    #     else:
-    #         if len(categorical_inputs_layer) == 0:
-    #             decoder_inputs = RepeatVector(n_outputs)(state_h)
-    #         else:
-    #             decoder_inputs = embedding_layers
 
     if len(decoder_first_layers) == 0:
         y = RepeatVector(n_outputs)(state_h)

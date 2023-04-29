@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
     X_test = generate_weekly_inputs(X_test, y_test)
 
-    model = tf.keras.models.load_model(os.path.join(dir_, basic_filename))
+    model = tf.keras.models.load_model(os.path.join(dir_, f"{basic_filename}"))
 
     # Prediction
     pred = model.predict(X_test)
