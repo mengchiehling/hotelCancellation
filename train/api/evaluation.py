@@ -136,9 +136,9 @@ if __name__ == "__main__":
     plt.savefig(f"{basic_filename}.png")
 
     # 印出來第一天的
+    '''
     filepath = os.path.join(get_datafetch(),
                             f'predictResult(no fill zero)_{config.algorithm}_{config.hotel_id}_{config.configuration}.csv')
-
     _, test_dataset, _, _ = create_dataset(df, test_size=args.test_size)
     test_dataset = to_timeseries_dataframe(test_dataset, idx[end_of_train_dataset + 1:])
     test_dataset['pred_canceled'] = y_pred
@@ -146,3 +146,18 @@ if __name__ == "__main__":
     test_dataset.rename(columns={"canceled": "label", "cabceled_pred": 'time_series_pred'}, inplace=True)
     test_dataset = test_dataset[["label", "time_series_pred"]]
     test_dataset.to_csv(filepath)
+    '''
+    filepath = os.path.join(get_datafetch(),
+                            f'predictResult(no fill zero)_{config.algorithm}_{config.hotel_id}_{config.configuration}.csv')
+
+    _, test_dataset, _, _ = create_dataset(df, test_size=args.test_size)
+    end_of_train_dataset = int(len(test_dataset) * (1 - args.test_size)) - 1
+
+    if test_dataset.iloc[end_of_train_dataset + 1:].isnull().values.any():
+        print("There is missing value in test dataset. Skipping outputting to CSV file.")
+    else:
+        test_dataset = to_timeseries_dataframe(test_dataset, idx[end_of_train_dataset + 1:])
+        test_dataset['pred_canceled'] = y_pred
+        test_dataset.rename(columns={"canceled": "label", "cabceled_pred": 'time_series_pred'}, inplace=True)
+        test_dataset = test_dataset[["label", "time_series_pred"]]
+        test_dataset.to_csv(filepath, index=False)
