@@ -40,8 +40,12 @@ def to_supervised(df: pd.DataFrame, prediction: bool = False):
         in_end = in_start + config.input_range
         out_start = in_end + config.lead_time
         out_end = out_start + config.prediction_time
-        if out_end < len(date_feature_numerical):
 
+        print(f"start: {df.iloc[out_start: out_end].iloc[0].name} - end: {df.iloc[out_start: out_end].iloc[-1].name}")
+
+        if out_end <= len(date_feature_numerical):
+            print(
+                f"start: {df.iloc[out_start: out_end].iloc[0].name} - end: {df.iloc[out_start: out_end].iloc[-1].name}")
             encoder_X_num.append(date_feature_numerical.iloc[in_start: in_end].values)
 
             if len(categorical_features) > 0:

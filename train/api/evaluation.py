@@ -66,7 +66,7 @@ if __name__ == "__main__":
     end_of_train_dataset = idx.index(train_dataset.iloc[-1]['check_in'])  # index
 
     train_dataset = to_timeseries_dataframe(train_dataset, idx[:end_of_train_dataset + 1])
-    test_dataset = to_timeseries_dataframe(test_dataset, idx[end_of_train_dataset:])
+    test_dataset = to_timeseries_dataframe(test_dataset, idx[end_of_train_dataset+1:])
 
     test_dataset = pd.concat([train_dataset.iloc[-config.input_range:], test_dataset])
 
