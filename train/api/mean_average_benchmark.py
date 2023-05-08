@@ -4,12 +4,13 @@ from datetime import datetime
 
 import numpy as np
 import pandas as pd
+
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import mean_absolute_percentage_error
 
 from src import config
 from src.common.load_data import load_training_data
-from src.io.path_definition import get_file, load_yaml_file
+from src.io.path_definition import get_file, load_yaml_file, get_datafetch
 from train.api.training_run import create_dataset, to_timeseries_dataframe
 
 
@@ -20,7 +21,7 @@ def set_configuration():
     config.max_train_size = args.max_train_size
     config.input_range = args.input_range
     config.prediction_time = args.prediction_time
-
+    config.algorithm = 'meanAverage'
 
 if __name__ == "__main__":
 
@@ -55,7 +56,9 @@ if __name__ == "__main__":
         inputs = test_dataset.iloc[shift: shift + config.input_range]
         try:
             y_true.append(test_dataset.iloc[shift + config.input_range]['canceled'])
-            y_pred.append(inputs['canceled'][::7].mean())
+            #avg = inputs['canceled'].mean()  #過去config.input_range天的平均值
+            avg = inputs['canceled'][::7].mean() #每隔7天取1個點
+            y_pred.append(int(np.round(avg)))
         except IndexError:
             break
         shift += 1
@@ -67,7 +70,16 @@ if __name__ == "__main__":
     wmape2 = y_abs_diff.sum() / np.array(y_true).sum()
     print("第一天的WMAPE值: {:.4f}".format(wmape2))
 
-    print("")
+
+    filepath = os.path.join(get_datafetch(),
+                            f'predictResult(no fill zero)_{config.algorithm}_{config.hotel_id}.csv')
+    _, test_dataset, _, _ = create_dataset(df, test_size=args.test_size)
+    test_dataset = to_timeseries_dataframe(test_dataset, idx[end_of_train_dataset + 1:])
+
+    test_dataset['pred_canceled'] = y_pred
+    test_dataset.rename(columns={"canceled": "label", "pred_canceled": 'time_series_pred'}, inplace=True)
+    test_dataset = test_dataset[["label", "time_series_pred"]]
+    test_dataset.to_csv(filepath)
 
     # tscv = TimeSeriesSplit(n_splits=n_splits, test_size=test_size, max_train_size=max_train_size)
     #
